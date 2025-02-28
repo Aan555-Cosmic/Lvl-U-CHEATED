@@ -33,6 +33,7 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
+local TabInfo = Window:CreateTab("Info", 1510045894) -- Title, Image
 local TabMisc = Window:CreateTab("Misc", 1510045894) -- Title, Image
 local TabScript = Window:CreateTab("Script", 1510045894) -- Title, Image
 local TabSetting = Window:CreateTab("Settings", 1510045894) -- Title, Image
@@ -40,7 +41,7 @@ local TabSetting2 = Window:CreateTab("Settings-2", 1510045894) -- This is Misc p
 local TabThe = Window:CreateTab("Themes", 1510045894) -- This is Themes page
 local TabCre = Window:CreateTab("Credits", 1510045894) -- This is credits page
 
-
+local Paragraph = TabInfo:CreateParagraph({Title = "Infotmation", Content = "This Script Is Beta And Just Wait Until New upd for More option"})
   
  local Toggle = TabMisc:CreateToggle({
     Name = "Infinite Jump",
@@ -286,9 +287,6 @@ local Keybind = TabSetting:CreateKeybind({
    -- The variable (Keybind) is a boolean for whether the keybind is being held or not (HoldToInteract needs to be true)
    end,
 })
-
-local Label61 = TabSetting:CreateLabel("Simple Text Label")
-local Paragraph61 = TabSetting:CreateParagraph({Title = "Simple Paragraph", Content = "This is an Simple Paragraph made in Rayfield UI Library, it's open sourced for everyone!"})
 
 Rayfield:Notify({
    Title = "REDSMILLER Hub",
