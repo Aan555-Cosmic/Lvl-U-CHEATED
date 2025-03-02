@@ -1,10 +1,10 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "REDSMILLER Hub",
-   LoadingTitle = "REDSMILLER Hub",
+   Name = "ZDZ Hub",
+   LoadingTitle = "ZDZ Hub",
    LoadingSubtitle = "by Aan",
-   Theme = "Ocean", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+   Theme = "Light", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
@@ -12,7 +12,7 @@ local Window = Rayfield:CreateWindow({
    ConfigurationSaving = {
       Enabled = true,
       FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "REDSMILLER Hub"
+      FileName = "ZDZ Hub"
    },
 
    Discord = {
@@ -23,9 +23,9 @@ local Window = Rayfield:CreateWindow({
 
    KeySystem = true,
    KeySettings = {
-      Title = "REDSMILLER Hub",
+      Title = "U Locked",
       Subtitle = "Key System",
-      Note = "Support This Hub And Join The Discord <3", -- Use this to tell the user how to get a key
+      Note = "Free Key->[123L0c4of15FGG]", -- Use this to tell the user how to get a key
       FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
       SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
@@ -41,7 +41,9 @@ local TabSetting2 = Window:CreateTab("Settings-2", 1510045894) -- This is Misc p
 local TabThe = Window:CreateTab("Themes", 1510045894) -- This is Themes page
 local TabCre = Window:CreateTab("Credits", 1510045894) -- This is credits page
 
-local Paragraph = TabInfo:CreateParagraph({Title = "Infotmation", Content = "This Script Is Beta And Just Wait Until New upd for More option"})
+local Paragraph = TabInfo:CreateParagraph({Title = "Informations", Content = "This Script is Beta And The Version this Script is V1.5"})
+local Paragraph = TabInfo:CreateParagraph({Title = "New Version 2.5", Content = "New V2.5 In March/April"})
+        
   
  local Toggle = TabMisc:CreateToggle({
     Name = "Infinite Jump",
@@ -57,11 +59,38 @@ local Paragraph = TabInfo:CreateParagraph({Title = "Infotmation", Content = "Thi
     end,
  })
  
- 
- 
+
+
+local Toggle = TabMisc:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(InfiniteJumpEnabled)
+        local FlyEnabled = true
+        game:GetService("UserInputService").FlyRequest:connect(function()
+            if FlyEnabled then
+                game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Fly")
+            end
+        end)
+    end,
+ })
+
+local Slider = TabMisc:CreateSlider({
+    Name = "Fly Speed",
+    Range = {20, 250},
+    Increment = 10,
+    Suffix = "FlySpeed",
+    CurrentValue = 10,
+    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(v)
+        game.Players.LocalPlayer.Character.Humanoid.FlySpeed = v
+    end,
+ })
+
+
  local Slider = TabMisc:CreateSlider({
     Name = "Walkspeed",
-    Range = {16, 250},
+    Range = {16, 500},
     Increment = 10,
     Suffix = "Walkspeed",
     CurrentValue = 10,
@@ -171,16 +200,16 @@ local Button29 = TabThe:CreateButton({
 local Button = TabScript:CreateButton({
    Name = "Load IY",
    Callback = function()
-	-- I willl create an script that loads IY
+	-- loads IY
 	loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/refs/heads/master/source'))()
    end,
 })
 
 local Button = TabScript:CreateButton({
-   Name = "IY to,Wait Until New Upd",
+   Name = "Load Redz",
    Callback = function()
-	-- I willl create an script that loads IY
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/refs/heads/master/source'))()
+	-- loads Redz
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/realredz/BloxFruits/refs/heads/main/Source.lua"))()
    end,
 })
 
@@ -203,8 +232,6 @@ local Toggle = TabSetting:CreateToggle({
    -- The variable (Value) is a boolean on whether the toggle is true or false
    end,
 })
-
-local Label = TabCre:CreateLabel("Support This Hub <3")
 
 local Button = TabSetting2:CreateButton({
    Name = "Unload",
@@ -280,7 +307,7 @@ local Keybind = TabSetting:CreateKeybind({
    Name = "Simple Bind",
    CurrentKeybind = "H",
    HoldToInteract = false,
-   Flag = "REDSMILLERHubKeybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "ZDZHubKeybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
    Callback = function(Keybind)
    	print("Simple Bind Works")
    -- The function that takes place when the keybind is pressed
@@ -288,9 +315,12 @@ local Keybind = TabSetting:CreateKeybind({
    end,
 })
 
+local Label61 = TabSetting:CreateLabel("Simple Text Label")
+local Paragraph61 = TabSetting:CreateParagraph({Title = "Simple Paragraph", Content = "This is an Simple Paragraph made in Rayfield UI Library, it's open sourced for everyone!"})
+
 Rayfield:Notify({
-   Title = "REDSMILLER Hub",
-   Content = "Script Loaded.",
+   Title = "Ur Welcome",
+   Content = "Script Loaded...",
    Duration = 6.5,
    Image = 1510045894,
    Actions = { -- Notification Buttons
