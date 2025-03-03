@@ -58,36 +58,155 @@ local Paragraph = TabInfo:CreateParagraph({Title = "New Version 2.5", Content = 
         end)
     end,
  })
- 
 
 
-local Toggle = TabMisc:CreateToggle({
+-- Variabel Fly
+local flying = false
+local speed = 50
+
+-- Fungsi Fly
+local function Fly()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character or plr.CharacterAdded:Wait()
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local bv = Instance.new("BodyVelocity")
+    bv.Velocity = Vector3.new(0, 0, 0)
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bv.Parent = hrp
+
+    local bg = Instance.new("BodyGyro")
+    bg.CFrame = hrp.CFrame
+    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bg.Parent = hrp
+
+    game:GetService("RunService").Heartbeat:Connect(function()
+        if flying then
+            bv.Velocity = (plr.Character.Humanoid.MoveDirection * speed) + Vector3.new(0, 2, 0)
+            bg.CFrame = hrp.CFrame
+        else
+            bv:Destroy()
+            bg:Destroy()
+        end
+    end)
+end
+
+-- Toggle untuk Mengaktifkan/Mematikan Fly
+TabMisc:CreateToggle({
     Name = "Fly",
     CurrentValue = false,
-    Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(InfiniteJumpEnabled)
-        local FlyEnabled = true
-        game:GetService("UserInputService").FlyRequest:connect(function()
-            if FlyEnabled then
-                game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Fly")
-            end
-        end)
-    end,
- })
+    Flag = "Fly Mode",
+    Callback = function(value)
+        flying = value
+        if flying then
+            Fly()
+        end
+    end
+})
+
+-- Slider untuk Mengatur Kecepatan Fly
+TabMisc:CreateSlider({
+    Name = "Fly Speed",
+    Range = {10, 200},
+    Increment = 5,
+    Suffix = "Speed",
+    CurrentValue = speed,
+    Flag = "FlySpeed",
+    Callback = function(value)
+        speed = value
+    end
+})
 
 
+-- Variabel Gravitasi
+local gravityEnabled = false
+local gravityValue = 196.2 -- Nilai default gravitasi Roblox
 
-local Slider = TabMisc:CreateSlider({
+-- Fungsi untuk Mengatur Gravitasi
+local function SetGravity(value)
+    game.Workspace.Gravity = value
+end
+
+-- Toggle untuk Mengaktifkan/Mematikan Pengaturan Gravitasi
+TabMisc:CreateToggle({
     Name = "Gravity",
-    Range = {196, 10},
+    CurrentValue = false,
+    Flag = "Gravity Moon",
+    Callback = function(value)
+        gravityEnabled = value
+        if not gravityEnabled then
+            -- Mengembalikan gravitasi ke default saat toggle dimatikan
+            SetGravity(196.2)
+        else
+            SetGravity(gravityValue)
+        end
+    end
+})
+
+-- Slider untuk Mengatur Gravitasi dari 1000 ke 0
+TabMisc:CreateSlider({
+    Name = "Gravity Level",
+    Range = {1000, 0},
     Increment = 10,
     Suffix = "Gravity",
-    CurrentValue = 10,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.Gravity = v
-    end,
- })
+    CurrentValue = gravityValue,
+    Flag = "GravitySlider",
+    Callback = function(value)
+        gravityValue = value
+        if gravityEnabled then
+            SetGravity(gravityValue)
+        end
+    end
+})
+
+
+-- Variabel Fling
+local flingEnabled = false
+local flingPower = 100000 -- Nilai default kekuatan fling
+
+-- Fungsi untuk Melakukan Fling
+local function FlingCharacter()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character or plr.CharacterAdded:Wait()
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    
+    if not hrp then return end
+
+    local bv = Instance.new("BodyVelocity")
+    bv.Velocity = Vector3.new(math.random(-flingPower, flingPower), flingPower, math.random(-flingPower, flingPower))
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bv.Parent = hrp
+
+    task.wait(0.1) -- Memberikan sedikit waktu untuk fling berfungsi
+    bv:Destroy() -- Menghapus BodyVelocity setelah fling agar tidak terus berlanjut
+end
+
+-- Toggle untuk Mengaktifkan/Mematikan Fling
+TabMisc:CreateToggle({
+    Name = "Fling",
+    CurrentValue = false,
+    Flag = "Fling Mode",
+    Callback = function(value)
+        flingEnabled = value
+        if flingEnabled then
+            FlingCharacter()
+        end
+    end
+})
+
+-- Slider untuk Mengatur Kekuatan Fling
+TabMisc:CreateSlider({
+    Name = "Fling Power",
+    Range = {1000, 1000000000},
+    Increment = 10000,
+    Suffix = "Power",
+    CurrentValue = flingPower,
+    Flag = "FlingPower",
+    Callback = function(value)
+        flingPower = value
+    end
+})
 
 
  local Slider = TabMisc:CreateSlider({
