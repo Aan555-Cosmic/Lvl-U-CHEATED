@@ -240,7 +240,7 @@ TabMisc:CreateToggle({
 -- Slider for Spin Speed
 TabMisc:CreateSlider({
     Name = "Spin Speed",
-    Range = {1, 50},
+    Range = {1, 100},
     Increment = 1,
     Suffix = "°/frame",
     CurrentValue = 10,
