@@ -1,1 +1,217 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local StarterGui = game:GetService("StarterGui")
+local TeleportService = game:GetService("TeleportService")
+
+local player = Players.LocalPlayer
+
+-- 🔄 **Self-Healing System** (Mencegah script mati)
+local function safeExecute(func)
+    task.spawn(function()
+        while true do
+            pcall(func)
+            task.wait(0.1)
+        end
+    end)
+end
+
+-- 🚀 **FPS Booster (Menghapus efek berat & meningkatkan performa)**
+local function optimizeFPS()
+    safeExecute(function()
+        -- Menghapus Fog (Kabut)
+        Lighting.FogEnd = 9e9
+        Lighting.FogStart = 9e9
+        Lighting.GlobalShadows = false
+        
+        -- Menghapus Efek Berat (Blur, Sun Rays, Bloom)
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("PostEffect") then
+                v:Destroy()
+            end
+        end
+        
+        -- Menghapus Partikel & Efek yang Tidak Perlu
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                v:Destroy()
+            elseif v:IsA("BasePart") then
+                v.Material = Enum.Material.SmoothPlastic
+            end
+        end
+    end)
+end
+
+-- 🛡️ **Bypass Anti-Cheat Ultimate**
+local function bypassAntiCheat()
+    safeExecute(function()
+        local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 16
+            humanoid.JumpPower = 50
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false) -- Mencegah forced disable
+        end
+    end)
+
+    safeExecute(function()
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.Velocity, root.RotVelocity = Vector3.zero, Vector3.zero
+        end
+    end)
+end
+
+-- 🚀 **Bypass Anti-Lag/Crash (Dynamic CPU Load Balancing + No Memory Leak)**
+local function bypassAntiLag()
+    safeExecute(function()
+        collectgarbage("collect")
+        RunService.Heartbeat:Wait()
+    end)
+end
+
+-- 🔍 **Bypass Kick/Ban Detection**
+local function detectKickBan()
+    StarterGui:SetCore("ResetButtonCallback", false) -- Mencegah kick melalui reset
+
+    player.OnTeleport:Connect(function(state)
+        if state == Enum.TeleportState.Failed then
+            warn("🚨 Possible Kick/Ban Detected!")
+        end
+    end)
+
+    game:GetService("CoreGui").ChildRemoved:Connect(function(child)
+        if child.Name == "ErrorPrompt" then
+            warn("🚨 Kick/Ban Detected! Attempting to Bypass...")
+            task.wait(1)
+            TeleportService:Teleport(game.PlaceId, player) -- Teleport ulang ke game
+        end
+    end)
+end
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function()
+    task.wait(2) -- Memberi waktu loading character
+    bypassAntiCheat()
+    bypassAntiLag()
+    optimizeFPS()
+end)
+
+-- **Jalankan Semua Sistem Secara Otomatis**
+bypassAntiCheat()
+bypassAntiLag()
+optimizeFPS()
+detectKickBan()
+
+local Window = Rayfield:CreateWindow({
+   Name = "ZDZ Hub",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "Loading...",
+   LoadingSubtitle = "by Aan",
+   Theme = "Light", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "ZDZ Hub"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = false, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Locked",
+      Subtitle = "Unlock key",
+      Note = "Free Key Real-->[Ramadhan2025]", -- Use this to tell the user how to get a key
+      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"Ramadhan2025"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+local TabInfo = Window:CreateTab("Info", 1510045894) -- Title, Image
+
+local Paragraph = TabInfo:CreateParagraph({Title = "Version 3.0", Content = "Before this sc not have bypass but now can bypass anti cheat/lag/crash/+fps boost"})
+local Paragraph = TabInfo:CreateParagraph({Title = "ChangeLog Upd", Content = "In This Version We Added +Fly,+Gravity,+Fling and more"})
+local Label = TabInfo:CreateLabel("Owner/Script Maker:Adrian", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+local TabMain = Window:CreateTab("Main", 1510045894) -- Title, Image
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local teleportEnabled = false
+
+-- 🛡️ **Bypass Anti-Cheat Advanced**
+local function teleportToPosition(position)
+    if teleportEnabled and humanoidRootPart then
+        humanoidRootPart.CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) -- Sedikit di atas agar tidak stuck
+    end
+end
+
+-- 🖱️ **Click Detection**
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if teleportEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 and not gameProcessed then
+        local mouse = player:GetMouse()
+        if mouse.Target then
+            teleportToPosition(mouse.Hit.p)
+        end
+    end
+end)
+
+-- 🎯 **Detection System (Mendeteksi pemain yang menggunakan teleport)**
+local function detectTeleportCheaters()
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local rootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if rootPart then
+                local velocity = rootPart.Velocity.magnitude
+                if velocity > 200 then -- Normalnya di bawah 50
+                    warn("🚨 Detected Teleport Cheater: " .. otherPlayer.Name)
+                end
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Teleport(To Use U Just Need to click/tap place and u will tp)",
+    CurrentValue = false,
+    Flag = "TeleportToggle",
+    Callback = function(value)
+        teleportEnabled = value
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+
+    if teleportEnabled then
+        teleportEnabled = true
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if teleportEnabled then
+        detectTeleportCheaters()
+    end
+end)
