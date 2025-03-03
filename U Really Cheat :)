@@ -215,6 +215,15 @@ local Button = TabScript:CreateButton({
    end,
 })
 
+local Button = TabScript:CreateButton({
+   Name = "Load JJI(Script)",
+   Callback = function()
+	-- loads JJI
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/debunked69/Solixreworkkeysystem/refs/heads/main/solix%20new%20keyui.lua"))()
+   end,
+})
+
+
 local Section = TabSetting:CreateSection("Some Other Elements")
 
 local Toggle = TabSetting:CreateToggle({
