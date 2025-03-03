@@ -147,7 +147,7 @@ TabMisc:CreateToggle({
 -- Slider untuk Mengatur Gravitasi dari 1000 ke 0
 TabMisc:CreateSlider({
     Name = "Gravity Level",
-    Range = {1000, 0},
+    Range = {0, 1000},
     Increment = 10,
     Suffix = "Gravity",
     CurrentValue = gravityValue,
@@ -198,8 +198,8 @@ TabMisc:CreateToggle({
 -- Slider untuk Mengatur Kekuatan Fling
 TabMisc:CreateSlider({
     Name = "Fling Power",
-    Range = {1000, 1000000000},
-    Increment = 10000,
+    Range = {1000, 1000000},
+    Increment = 1000000,
     Suffix = "Power",
     CurrentValue = flingPower,
     Flag = "FlingPower",
@@ -209,31 +209,302 @@ TabMisc:CreateSlider({
 })
 
 
- local Slider = TabMisc:CreateSlider({
-    Name = "Walkspeed",
-    Range = {16, 500},
-    Increment = 10,
-    Suffix = "Walkspeed",
+-- Variables
+local spinning = false
+local spinSpeed = 10
+
+-- Function to start spinning
+local function startSpinning()
+    while spinning do
+        local character = game.Players.LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(spinSpeed), 0)
+        end
+        task.wait(0.1) -- Adjust loop execution speed
+    end
+end
+
+-- Toggle for Spin
+TabMisc:CreateToggle({
+    Name = "Enable Spin",
+    CurrentValue = false,
+    Flag = "SpinToggle",
+    Callback = function(value)
+        spinning = value
+        if spinning then
+            startSpinning()
+        end
+    end
+})
+
+-- Slider for Spin Speed
+TabMisc:CreateSlider({
+    Name = "Spin Speed",
+    Range = {1, 50},
+    Increment = 1,
+    Suffix = "°/frame",
     CurrentValue = 10,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
-    end,
- })
- 
- 
- 
- local Slider = TabMisc:CreateSlider({
+    Flag = "SpinSpeed",
+    Callback = function(value)
+        spinSpeed = value
+    end
+})
+
+
+-- Variables
+local noClipEnabled = false
+
+-- Function to enable/disable NoClip
+local function setNoClip(state)
+    noClipEnabled = state
+    local player = game.Players.LocalPlayer
+
+    while noClipEnabled do
+        if player and player.Character then
+            for _, part in pairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+        end
+        task.wait()
+    end
+
+    -- Re-enable collisions when NoClip is turned off
+    if player and player.Character then
+        for _, part in pairs(player.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+-- Toggle for NoClip
+TabMisc:CreateToggle({
+    Name = "Enable NoClip",
+    CurrentValue = false,
+    Flag = "NoClipToggle",
+    Callback = function(value)
+        setNoClip(value)
+    end
+})
+
+
+-- Variables
+local espEnabled = false
+local espTarget = "Players" -- Default Target
+
+-- Function to create ESP
+local function createESP(object, color)
+    if object and not object:FindFirstChild("ESPBox") then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESPBox"
+        highlight.Parent = object
+        highlight.Adornee = object
+        highlight.FillColor = color
+        highlight.OutlineColor = Color3.new(1, 1, 1)
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+    end
+end
+
+-- Function to remove ESP
+local function removeESP()
+    for _, v in pairs(game.Workspace:GetDescendants()) do
+        if v:IsA("Highlight") and v.Name == "ESPBox" then
+            v:Destroy()
+        end
+    end
+end
+
+-- Function to update ESP
+local function updateESP()
+    removeESP()
+    if not espEnabled then return end
+    
+    for _, v in pairs(game.Workspace:GetDescendants()) do
+        if espTarget == "Players" and v:IsA("Model") and v:FindFirstChild("Humanoid") and game.Players:GetPlayerFromCharacter(v) then
+            createESP(v, Color3.new(1, 0, 0)) -- Red for players
+        elseif espTarget == "NPC" and v:IsA("Model") and v:FindFirstChild("Humanoid") and not game.Players:GetPlayerFromCharacter(v) then
+            createESP(v, Color3.new(0, 1, 0)) -- Green for NPCs
+        elseif espTarget == "All" and v:IsA("Model") and v:FindFirstChild("Humanoid") then
+            createESP(v, Color3.new(0, 0, 1)) -- Blue for all entities
+        end
+    end
+end
+
+-- Toggle for ESP
+TabMisc:CreateToggle({
+    Name = "Enable ESP",
+    CurrentValue = false,
+    Flag = "ESPToggle",
+    Callback = function(value)
+        espEnabled = value
+        updateESP()
+    end
+})
+
+-- Dropdown for ESP Target Selection
+TabMisc:CreateDropdown({
+    Name = "ESP Target",
+    Options = {"Players", "NPC", "All"},
+    CurrentOption = "Players",
+    Flag = "ESPTarget",
+    Callback = function(option)
+        espTarget = option
+        updateESP()
+    end
+})
+
+
+-- Variables
+local walkSpeedEnabled = false
+local walkSpeedValue = 16
+
+-- Function to set WalkSpeed
+local function setWalkSpeed(value)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = value
+    end
+end
+
+-- Toggle for WalkSpeed
+TabMisc:CreateToggle({
+    Name = "Enable WalkSpeed",
+    CurrentValue = false,
+    Flag = "WalkSpeedToggle",
+    Callback = function(value)
+        walkSpeedEnabled = value
+        if walkSpeedEnabled then
+            setWalkSpeed(walkSpeedValue)
+        else
+            setWalkSpeed(16) -- Reset to default when disabled
+        end
+    end
+})
+
+-- Slider for WalkSpeed
+TabMisc:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 1000},
+    Increment = 1,
+    Suffix = " speed",
+    CurrentValue = 16,
+    Flag = "WalkSpeedValue",
+    Callback = function(value)
+        walkSpeedValue = value
+        if walkSpeedEnabled then
+            setWalkSpeed(walkSpeedValue)
+        end
+    end
+})
+
+
+-- Variables
+local jumpPowerEnabled = false
+local jumpPowerValue = 40
+
+-- Function to set JumpPower
+local function setJumpPower(value)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.UseJumpPower = true
+        player.Character.Humanoid.JumpPower = value
+    end
+end
+
+-- Toggle for JumpPower
+TabMisc:CreateToggle({
+    Name = "Enable JumpPower",
+    CurrentValue = false,
+    Flag = "JumpPowerToggle",
+    Callback = function(value)
+        jumpPowerEnabled = value
+        if jumpPowerEnabled then
+            setJumpPower(jumpPowerValue)
+        else
+            setJumpPower(40) -- Reset to default when disabled
+        end
+    end
+})
+
+-- Slider for JumpPower
+TabMisc:CreateSlider({
     Name = "JumpPower",
-    Range = {50, 500},
-    Increment = 10,
-    Suffix = "JumpPower",
-    CurrentValue = 10,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-    Callback = function(v)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
-    end,
- })
+    Range = {40, 1000},
+    Increment = 1,
+    Suffix = " power",
+    CurrentValue = 40,
+    Flag = "JumpPowerValue",
+    Callback = function(value)
+        jumpPowerValue = value
+        if jumpPowerEnabled then
+            setJumpPower(jumpPowerValue)
+        end
+    end
+})
+
+
+ -- Variables
+local hitboxEnabled = false
+local hitboxSize = 5 -- Default size
+
+-- Function to modify hitbox size
+local function setHitboxSize(size)
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = player.Character.HumanoidRootPart
+            rootPart.Size = Vector3.new(size, size, size)
+            rootPart.Transparency = 0.7
+            rootPart.Material = Enum.Material.ForceField
+        end
+    end
+end
+
+-- Function to reset hitbox size
+local function resetHitbox()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = player.Character.HumanoidRootPart
+            rootPart.Size = Vector3.new(2, 2, 1) -- Default Roblox hitbox size
+            rootPart.Transparency = 0
+            rootPart.Material = Enum.Material.Plastic
+        end
+    end
+end
+
+-- Toggle for Hitbox
+TabMisc:CreateToggle({
+    Name = "Enable Hitbox",
+    CurrentValue = false,
+    Flag = "HitboxToggle",
+    Callback = function(value)
+        hitboxEnabled = value
+        if hitboxEnabled then
+            setHitboxSize(hitboxSize)
+        else
+            resetHitbox()
+        end
+    end
+})
+
+-- Slider for Hitbox Size
+TabMisc:CreateSlider({
+    Name = "Hitbox Size",
+    Range = {2, 50},
+    Increment = 1,
+    Suffix = " size",
+    CurrentValue = 5,
+    Flag = "HitboxSize",
+    Callback = function(value)
+        hitboxSize = value
+        if hitboxEnabled then
+            setHitboxSize(hitboxSize)
+        end
+    end
+})
 
 
 
