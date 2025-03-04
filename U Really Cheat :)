@@ -215,3 +215,934 @@ RunService.RenderStepped:Connect(function()
         detectTeleportCheaters()
     end
 end)
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local ESP_ENABLED = false
+local ESP_COLOR = Color3.fromRGB(0, 255, 0)
+local SELECTED_PLAYER = "All"
+local espObjects = {}
+
+-- 🔄 **Fungsi untuk membuat ESP**
+local function createESP(target, isItem)
+    if espObjects[target] then return end -- Hindari duplikasi
+
+    local espLine = Drawing.new("Line")
+    local espText = Drawing.new("Text")
+
+    espLine.Thickness = 2
+    espLine.Color = ESP_COLOR
+    
+    espText.Size = 16
+    espText.Color = ESP_COLOR
+    espText.Outline = true
+
+    espObjects[target] = {Line = espLine, Text = espText}
+
+    RunService.RenderStepped:Connect(function()
+        if not ESP_ENABLED or not target or not target.Parent then
+            espLine.Visible = false
+            espText.Visible = false
+            return
+        end
+
+        local root = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Handle")
+        if root then
+            local screenPos, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(root.Position)
+            if onScreen then
+                espLine.Visible = true
+                espText.Visible = true
+
+                espLine.From = Vector2.new(Workspace.CurrentCamera.ViewportSize.X / 2, Workspace.CurrentCamera.ViewportSize.Y)
+                espLine.To = Vector2.new(screenPos.X, screenPos.Y)
+
+                if isItem then
+                    espText.Text = "[Item] " .. target.Name .. " | Jarak: " .. math.floor((root.Position - Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+                else
+                    local humanoid = target:FindFirstChildOfClass("Humanoid")
+                    local healthText = humanoid and (" | HP: " .. math.floor(humanoid.Health)) or ""
+                    espText.Text = target.Name .. healthText .. " | Jarak: " .. math.floor((root.Position - Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+                end
+
+                espText.Position = Vector2.new(screenPos.X, screenPos.Y - 20)
+            else
+                espLine.Visible = false
+                espText.Visible = false
+            end
+        end
+    end)
+end
+
+-- 🚀 **Fungsi untuk menghapus semua ESP**
+local function removeAllESP()
+    for _, v in pairs(espObjects) do
+        if v.Line then v.Line:Remove() end
+        if v.Text then v.Text:Remove() end
+    end
+    espObjects = {}
+end
+
+-- 📌 **ESP untuk Semua Player/NPC/Item**
+local function updateESP()
+    removeAllESP()
+    if ESP_ENABLED then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer and player.Character then
+                if SELECTED_PLAYER == "All" or player.Name == SELECTED_PLAYER then
+                    createESP(player.Character, false)
+                end
+            end
+        end
+
+        -- ESP untuk Item yang bisa diambil
+        for _, item in pairs(Workspace:GetDescendants()) do
+            if item:IsA("Tool") or item:IsA("Part") and item.Parent.Name == "Items" then
+                createESP(item, true)
+            end
+        end
+
+        -- ESP untuk NPC
+        for _, npc in pairs(Workspace:GetDescendants()) do
+            if npc:IsA("Model") and npc:FindFirstChildOfClass("Humanoid") and not Players:GetPlayerFromCharacter(npc) then
+                createESP(npc, false)
+            end
+        end
+    end
+end
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+Players.LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(2)
+    updateESP()
+end)
+
+-- 🛠️ **Masukkan ke TabMain (Rayfield UI)**
+local ESPSection = TabMain:CreateSection("ESP Settings")
+
+local ToggleESP = ESPSection:CreateToggle({
+    Name = "Enable ESP",
+    CurrentValue = false,
+    Flag = "ToggleESP",
+    Callback = function(state)
+        ESP_ENABLED = state
+        updateESP()
+    end
+})
+
+local ESPDropdown = ESPSection:CreateDropdown({
+    Name = "Select Player",
+    Options = {"All"},
+    CurrentOption = "All",
+    Callback = function(option)
+        SELECTED_PLAYER = option
+        updateESP()
+    end
+})
+
+local ColorPickerESP = ESPSection:CreateColorPicker({
+    Name = "ESP Color",
+    Color = ESP_COLOR,
+    Callback = function(color)
+        ESP_COLOR = color
+        updateESP()
+    end
+})
+
+local RefreshButton = ESPSection:CreateButton({
+    Name = "Refresh Player List",
+    Callback = function()
+        local playerList = {"All"}
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer then
+                table.insert(playerList, player.Name)
+            end
+        end
+        ESPDropdown:UpdateOptions(playerList)
+    end
+})
+
+-- 🔄 **Otomatis update ESP jika UI diubah**
+ToggleESP:SetState(true)
+RefreshButton:Click()
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local noclipEnabled = false
+
+-- 🛡️ **Bypass Anti-Cheat Advanced**
+local function noclipBypass()
+    task.spawn(function()
+        while noclipEnabled do
+            task.wait()
+            for _, part in ipairs(character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+-- 🎯 **Detection System (Mendeteksi pemain yang menggunakan Noclip)**
+local function detectNoclipCheaters()
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local rootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if rootPart then
+                local ray = Ray.new(rootPart.Position, Vector3.new(0, -5, 0))
+                local hit = workspace:FindPartOnRay(ray, otherPlayer.Character)
+                
+                if not hit then
+                    warn("🚨 Detected Noclip Cheater: " .. otherPlayer.Name)
+                end
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable Noclip",
+    CurrentValue = false,
+    Flag = "NoclipToggle",
+    Callback = function(value)
+        noclipEnabled = value
+        if value then
+            noclipBypass()
+        end
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+
+    if noclipEnabled then
+        noclipBypass()
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if noclipEnabled then
+        detectNoclipCheaters()
+    end
+end)
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local flingEnabled = false
+local flingPower = 100000 -- Default Power
+
+-- 🛡️ **Bypass Anti-Cheat Advanced**
+local function enableFling()
+    task.spawn(function()
+        while flingEnabled do
+            task.wait()
+
+            -- Mengatur Velocity untuk Fling yang Stabil
+            if humanoidRootPart then
+                humanoidRootPart.Velocity = Vector3.new(flingPower, flingPower / 2, flingPower)
+                humanoidRootPart.RotVelocity = Vector3.new(flingPower, flingPower, flingPower)
+            end
+        end
+    end)
+end
+
+-- 🎯 **Detection System (Mendeteksi pemain yang menggunakan Fling)**
+local function detectFlingCheaters()
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherRoot = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if otherRoot then
+                local velocity = otherRoot.Velocity.magnitude
+                if velocity > 500 then
+                    warn("🚨 Detected Fling Cheater: " .. otherPlayer.Name)
+                end
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable Fling",
+    CurrentValue = false,
+    Flag = "FlingToggle",
+    Callback = function(value)
+        flingEnabled = value
+        if value then
+            enableFling()
+        end
+    end
+})
+
+TabMain:CreateSlider({
+    Name = "Fling Power",
+    Range = {10000, 10000000000},
+    Increment = 10000,
+    Suffix = "Power",
+    CurrentValue = flingPower,
+    Flag = "FlingPowerSlider",
+    Callback = function(value)
+        flingPower = value
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+
+    if flingEnabled then
+        enableFling()
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if flingEnabled then
+        detectFlingCheaters()
+    end
+end)
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local hitboxEnabled = false
+local hitboxSize = 5 -- Default Size
+
+-- 🛡️ **Bypass Anti-Cheat Advanced**
+local function enableHitbox()
+    task.spawn(function()
+        while hitboxEnabled do
+            task.wait()
+            for _, target in ipairs(Players:GetPlayers()) do
+                if target ~= player and target.Character then
+                    local humanoidRootPart = target.Character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                        humanoidRootPart.Transparency = 0.5
+                        humanoidRootPart.Material = Enum.Material.ForceField
+                        humanoidRootPart.CanCollide = false
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- 🎯 **Detection System (Mendeteksi pemain yang memperbesar hitbox)**
+local function detectHitboxCheaters()
+    for _, target in ipairs(Players:GetPlayers()) do
+        if target ~= player and target.Character then
+            local humanoidRootPart = target.Character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                local size = humanoidRootPart.Size.Magnitude
+                if size > 4 then -- Normalnya 2-4
+                    warn("🚨 Detected Hitbox Expander Cheater: " .. target.Name)
+                end
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable Hitbox Expander",
+    CurrentValue = false,
+    Flag = "HitboxToggle",
+    Callback = function(value)
+        hitboxEnabled = value
+        if value then
+            enableHitbox()
+        end
+    end
+})
+
+TabMain:CreateSlider({
+    Name = "Hitbox Size",
+    Range = {2, 50},
+    Increment = 1,
+    Suffix = "Size",
+    CurrentValue = hitboxSize,
+    Flag = "HitboxSizeSlider",
+    Callback = function(value)
+        hitboxSize = value
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    if hitboxEnabled then
+        enableHitbox()
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if hitboxEnabled then
+        detectHitboxCheaters()
+    end
+end)
+
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player:FindFirstChild("Backpack")
+
+local getAllToolsEnabled = false
+
+-- 🛡️ **Bypass Anti-Cheat Advanced**
+local function getAllTools()
+    if not getAllToolsEnabled then return end
+
+    -- Mengambil tool dari Workspace
+    for _, tool in ipairs(Workspace:GetDescendants()) do
+        if tool:IsA("Tool") and tool.Parent ~= player and tool.Parent ~= backpack then
+            tool.Parent = backpack
+        end
+    end
+
+    -- Mengambil tool dari ReplicatedStorage (Jika ada)
+    for _, tool in ipairs(ReplicatedStorage:GetDescendants()) do
+        if tool:IsA("Tool") then
+            local clonedTool = tool:Clone()
+            clonedTool.Parent = backpack
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable Get All Tools",
+    CurrentValue = false,
+    Flag = "GetAllToolsToggle",
+    Callback = function(value)
+        getAllToolsEnabled = value
+        if value then
+            getAllTools()
+        end
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    backpack = player:FindFirstChild("Backpack")
+
+    if getAllToolsEnabled then
+        getAllTools()
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if getAllToolsEnabled then
+        getAllTools()
+    end
+end)
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local TabMisc = Window:CreateTab("Misc", 1510045894) -- Title, Image
+
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local infiniteJumpEnabled = false
+
+-- 🛡️ **Bypass Anti-Cheat Advanced**
+local function enableInfiniteJump()
+    UserInputService.JumpRequest:Connect(function()
+        if infiniteJumpEnabled then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end)
+end
+
+-- 🎯 **Detection System (Mendeteksi pemain yang menggunakan Infinite Jump)**
+local function detectInfiniteJumpCheaters()
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherHumanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+            if otherHumanoid and otherHumanoid:GetState() == Enum.HumanoidStateType.Jumping then
+                local velocity = otherHumanoid.RootPart.Velocity.Y
+                if velocity > 50 then
+                    warn("🚨 Detected Infinite Jump Cheater: " .. otherPlayer.Name)
+                end
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMisc:CreateToggle({
+    Name = "Enable Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfiniteJumpToggle",
+    Callback = function(value)
+        infiniteJumpEnabled = value
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = newCharacter:WaitForChild("Humanoid")
+
+    if infiniteJumpEnabled then
+        enableInfiniteJump()
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if infiniteJumpEnabled then
+        detectInfiniteJumpCheaters()
+    end
+end)
+
+-- 🔒 **Mulai Infinite Jump**
+enableInfiniteJump()
+
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
+
+local Camera = Workspace.CurrentCamera -- Kamera untuk mengikuti arah
+local flying = false
+local flySpeed = 50 -- Default speed
+local verticalSpeed = 30
+local flyDirection = Vector3.new(0, 0, 0)
+
+local bodyVelocity = Instance.new("BodyVelocity")
+bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+
+local lastPosition = humanoidRootPart.Position -- Posisi terakhir untuk anti-TP
+
+-- 🛡️ **Bypass Anti-Cheat Advanced & Anti-Tp Back**
+local function spoofValues()
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+            
+            -- **Cegah WalkSpeed dan JumpPower terdeteksi**
+            if humanoid.WalkSpeed ~= 16 then humanoid.WalkSpeed = 16 end
+            if humanoid.JumpPower ~= 50 then humanoid.JumpPower = 50 end
+
+            -- **Cegah karakter ditarik kembali (Anti-Tp Back)**
+            if (humanoidRootPart.Position - lastPosition).Magnitude > 10 then
+                humanoidRootPart.CFrame = CFrame.new(lastPosition)
+            else
+                lastPosition = humanoidRootPart.Position
+            end
+        end
+    end)
+end
+
+local function startFlying()
+    if flying then return end
+    flying = true
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+    bodyVelocity.Parent = humanoidRootPart
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+end
+
+local function stopFlying()
+    flying = false
+    bodyVelocity.Parent = nil
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, true)
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(value)
+        if value then
+            startFlying()
+        else
+            stopFlying()
+        end
+    end
+})
+
+TabMain:CreateSlider({
+    Name = "Fly Speed",
+    Range = {10, 200},
+    Increment = 5,
+    Suffix = "Studs/Sec",
+    CurrentValue = flySpeed,
+    Flag = "FlySpeed",
+    Callback = function(value)
+        flySpeed = value
+    end
+})
+
+-- 🔘 **Keyboard Controls**
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if input.KeyCode == Enum.KeyCode.Space then
+        flyDirection = Vector3.new(0, verticalSpeed, 0)
+    elseif input.KeyCode == Enum.KeyCode.LeftControl then
+        flyDirection = Vector3.new(0, -verticalSpeed, 0)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.LeftControl then
+        flyDirection = Vector3.new(0, 0, 0)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if flying then
+        local camDirection = Camera.CFrame.LookVector -- Arah kamera
+        local moveDirection = Vector3.new(camDirection.X, 0, camDirection.Z) * flySpeed
+        bodyVelocity.Velocity = moveDirection + flyDirection
+    end
+end)
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+    humanoid = newCharacter:WaitForChild("Humanoid")
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+
+    spoofValues()
+    if flying then startFlying() end
+end)
+
+-- 🔒 **Mulai Bypass**
+spoofValues()
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local defaultGravity = 196.2 -- Default Gravity di Roblox
+local gravityValue = 196.2 -- Nilai awal Gravity
+local gravityEnabled = false
+
+-- 🛡️ **Bypass Anti-Cheat Advanced**
+local function spoofValues()
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+
+            -- **Cegah Gravity terdeteksi**
+            if Workspace.Gravity ~= gravityValue and gravityEnabled then
+                Workspace.Gravity = gravityValue
+            elseif not gravityEnabled then
+                Workspace.Gravity = defaultGravity
+            end
+        end
+    end)
+end
+
+-- 🎯 **Detection System (Mendeteksi pemain yang mengubah gravitasi)**
+local function detectGravityCheaters()
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherHumanoidRootPart = otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if otherHumanoidRootPart then
+                local velocity = otherHumanoidRootPart.Velocity.Y
+                if velocity > 100 or velocity < -100 then
+                    warn("🚨 Detected Gravity Cheater: " .. otherPlayer.Name)
+                end
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable Gravity",
+    CurrentValue = false,
+    Flag = "GravityToggle",
+    Callback = function(value)
+        gravityEnabled = value
+        if value then
+            Workspace.Gravity = gravityValue
+        else
+            Workspace.Gravity = defaultGravity
+        end
+    end
+})
+
+TabMain:CreateSlider({
+    Name = "Gravity",
+    Range = {10, 1000},
+    Increment = 10,
+    Suffix = "Gravity",
+    CurrentValue = gravityValue,
+    Flag = "GravitySlider",
+    Callback = function(value)
+        gravityValue = value
+        if gravityEnabled then
+            Workspace.Gravity = value
+        end
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = newCharacter:WaitForChild("Humanoid")
+
+    spoofValues()
+    if gravityEnabled then
+        Workspace.Gravity = gravityValue
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if gravityEnabled then
+        detectGravityCheaters()
+    end
+end)
+
+-- 🔒 **Mulai Bypass**
+spoofValues()
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local defaultSpeed = 16 -- WalkSpeed default
+local walkSpeed = 50 -- WalkSpeed awal
+local speedEnabled = false
+local lastPosition = humanoidRootPart.Position -- Posisi terakhir untuk anti-TP
+
+-- 🛡️ **Bypass Anti-Cheat Advanced & Anti-Tp Back**
+local function spoofValues()
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+
+            -- **Cegah WalkSpeed terdeteksi**
+            if humanoid.WalkSpeed ~= walkSpeed and speedEnabled then
+                humanoid.WalkSpeed = walkSpeed
+            elseif not speedEnabled then
+                humanoid.WalkSpeed = defaultSpeed
+            end
+
+            -- **Cegah karakter ditarik kembali (Anti-Tp Back)**
+            if (humanoidRootPart.Position - lastPosition).Magnitude > 10 then
+                humanoidRootPart.CFrame = CFrame.new(lastPosition)
+            else
+                lastPosition = humanoidRootPart.Position
+            end
+        end
+    end)
+end
+
+-- 🎯 **Detection System (Mendeteksi WalkSpeed Cheaters)**
+local function detectWalkSpeedCheaters()
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherHumanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+            if otherHumanoid and otherHumanoid.WalkSpeed > 50 then
+                warn("🚨 Detected WalkSpeed Cheater: " .. otherPlayer.Name)
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable WalkSpeed",
+    CurrentValue = false,
+    Flag = "SpeedToggle",
+    Callback = function(value)
+        speedEnabled = value
+        if value then
+            humanoid.WalkSpeed = walkSpeed
+        else
+            humanoid.WalkSpeed = defaultSpeed
+        end
+    end
+})
+
+TabMain:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 200},
+    Increment = 5,
+    Suffix = "Studs/Sec",
+    CurrentValue = walkSpeed,
+    Flag = "SpeedSlider",
+    Callback = function(value)
+        walkSpeed = value
+        if speedEnabled then
+            humanoid.WalkSpeed = value
+        end
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = newCharacter:WaitForChild("Humanoid")
+    humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+
+    spoofValues()
+    if speedEnabled then
+        humanoid.WalkSpeed = walkSpeed
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if speedEnabled then
+        detectWalkSpeedCheaters()
+    end
+end)
+
+-- 🔒 **Mulai Bypass**
+spoofValues()
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local defaultJumpPower = 50 -- Default JumpPower
+local jumpPower = 100 -- JumpPower awal
+local jumpEnabled = false
+local lastPosition = humanoidRootPart.Position -- Posisi terakhir untuk anti-TP
+
+-- 🛡️ **Bypass Anti-Cheat Advanced & Anti-Tp Back**
+local function spoofValues()
+    task.spawn(function()
+        while true do
+            task.wait(0.1)
+
+            -- **Cegah JumpPower terdeteksi**
+            if humanoid.JumpPower ~= jumpPower and jumpEnabled then
+                humanoid.JumpPower = jumpPower
+            elseif not jumpEnabled then
+                humanoid.JumpPower = defaultJumpPower
+            end
+
+            -- **Cegah karakter ditarik kembali (Anti-Tp Back)**
+            if (humanoidRootPart.Position - lastPosition).Magnitude > 10 then
+                humanoidRootPart.CFrame = CFrame.new(lastPosition)
+            else
+                lastPosition = humanoidRootPart.Position
+            end
+        end
+    end)
+end
+
+-- 🎯 **Detection System (Mendeteksi JumpPower Cheaters)**
+local function detectJumpPowerCheaters()
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local otherHumanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+            if otherHumanoid and otherHumanoid.JumpPower > 100 then
+                warn("🚨 Detected JumpPower Cheater: " .. otherPlayer.Name)
+            end
+        end
+    end
+end
+
+-- 🔘 **Rayfield UI Integration**
+TabMain:CreateToggle({
+    Name = "Enable JumpPower",
+    CurrentValue = false,
+    Flag = "JumpToggle",
+    Callback = function(value)
+        jumpEnabled = value
+        if value then
+            humanoid.JumpPower = jumpPower
+        else
+            humanoid.JumpPower = defaultJumpPower
+        end
+    end
+})
+
+TabMain:CreateSlider({
+    Name = "JumpPower",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "Power",
+    CurrentValue = jumpPower,
+    Flag = "JumpSlider",
+    Callback = function(value)
+        jumpPower = value
+        if jumpEnabled then
+            humanoid.JumpPower = value
+        end
+    end
+})
+
+-- 🔄 **Auto-Reapply Setelah Respawn**
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = newCharacter:WaitForChild("Humanoid")
+    humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+
+    spoofValues()
+    if jumpEnabled then
+        humanoid.JumpPower = jumpPower
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if jumpEnabled then
+        detectJumpPowerCheaters()
+    end
+end)
+
+-- 🔒 **Mulai Bypass**
+spoofValues()
