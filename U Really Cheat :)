@@ -1,8 +1,8 @@
 -- Load Orion Library
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
 
 -- Create Window
-local Window = OrionLib:MakeWindow({Name = "Bypass Anti-Cheat Tester (Semi-Advanced)", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+local Window = OrionLib:MakeWindow({Name = "ZDZ Hub", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
 
 -- Main Tab
 local Tab = Window:MakeTab({
