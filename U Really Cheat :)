@@ -1,205 +1,88 @@
--- 🌟 Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Load Orion Library
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
-local Window = Rayfield:CreateWindow({
-    Name = "ZDZ Hub",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "Please wait...",
-    ConfigurationSaving = { Enabled = true, FileName = "ZDZ_Hub_Config" }
+-- Create Window
+local Window = OrionLib:MakeWindow({Name = "Bypass Anti-Cheat Tester (Semi-Advanced)", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+-- Main Tab
+local Tab = Window:MakeTab({
+    Name = "Bypass Features",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
 })
 
--- 🏆 Tabs
-local TabMain = Window:CreateTab("Main", 1510045894)
-local TabMisc = Window:CreateTab("Misc", 1510045894)
-local TabInfo = Window:CreateTab("Info", 1510045894)
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
 
--- 🔥 FPS Booster & Lag Reducer
-local function OptimizePerformance()
-    setfpscap(300)
-    game:GetService("RunService"):Set3dRenderingEnabled(false)
-    settings().Rendering.QualityLevel = 1
-    collectgarbage("setpause", 100)
-    collectgarbage("setstepmul", 5000)
-end
-OptimizePerformance()
-
--- **🎨 Theme Selector**
-local Themes = {
-    ["Default"] = {Background = Color3.fromRGB(30, 30, 30), TextColor = Color3.fromRGB(255, 255, 255)},
-    ["Red"] = {Background = Color3.fromRGB(255, 0, 0), TextColor = Color3.fromRGB(255, 255, 255)},
-    ["Blue"] = {Background = Color3.fromRGB(0, 0, 255), TextColor = Color3.fromRGB(255, 255, 255)},
-    ["Green"] = {Background = Color3.fromRGB(0, 255, 0), TextColor = Color3.fromRGB(0, 0, 0)}
-}
-
-local SelectedTheme = "Default"
-local function ApplyTheme()
-    local theme = Themes[SelectedTheme]
-    if theme then
-        Rayfield:SetTheme({ Background = theme.Background, TextColor = theme.TextColor })
-    end
-end
-
-TabInfo:CreateDropdown({
-    Name = "Select Theme",
-    Options = table.keys(Themes),
-    CurrentOption = "Default",
-    Flag = "ThemeDropdown",
-    Callback = function(option)
-        SelectedTheme = option
-        ApplyTheme()
+-- Smooth WalkSpeed Bypass
+Tab:AddSlider({
+    Name = "WalkSpeed Bypass",
+    Min = 16,
+    Max = 200,
+    Default = 16,
+    Increment = 1,
+    Callback = function(value)
+        task.spawn(function()
+            for i = humanoid.WalkSpeed, value, (value - humanoid.WalkSpeed) / 10 do
+                humanoid.WalkSpeed = i
+                task.wait(0.1) -- Perubahan bertahap agar tidak terdeteksi
+            end
+        end)
     end
 })
 
-TabInfo:CreateButton({
-    Name = "Apply Theme",
-    Callback = function()
-        ApplyTheme()
+-- Smooth JumpPower Bypass
+Tab:AddSlider({
+    Name = "JumpPower Bypass",
+    Min = 50,
+    Max = 500,
+    Default = 50,
+    Increment = 1,
+    Callback = function(value)
+        task.spawn(function()
+            for i = humanoid.JumpPower, value, (value - humanoid.JumpPower) / 10 do
+                humanoid.JumpPower = i
+                task.wait(0.1)
+            end
+        end)
     end
 })
 
--- ✅ **Misc Features**
--- Infinite Jump
-local InfiniteJump = false
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfiniteJump then
-        game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+-- Improved Fly Bypass
+local flying = false
+Tab:AddToggle({
+    Name = "Fly Bypass",
+    Default = false,
+    Callback = function(state)
+        flying = state
+        if flying then
+            local flyForce = Instance.new("BodyVelocity")
+            flyForce.Velocity = Vector3.new(0, 0, 0)
+            flyForce.MaxForce = Vector3.new(4000, 4000, 4000)
+            flyForce.Parent = root
+            
+            game:GetService("RunService").Stepped:Connect(function()
+                if flying then
+                    flyForce.Velocity = Vector3.new(0, 50, 0) + (root.Velocity * 0.1)
+                else
+                    flyForce:Destroy()
+                end
+            end)
+        end
+    end
+})
+
+-- Advanced Anti Teleport Balik
+local lastPosition = root.Position
+game:GetService("RunService").Stepped:Connect(function()
+    if (root.Position - lastPosition).Magnitude > 50 then
+        root.Position = lastPosition + Vector3.new(math.random(-2,2), 0, math.random(-2,2)) -- Gerakan acak agar tidak terdeteksi
+    else
+        lastPosition = root.Position
     end
 end)
 
-TabMisc:CreateToggle({
-    Name = "Infinite Jump",
-    Flag = "InfJump_Toggle",
-    Callback = function(state)
-        InfiniteJump = state
-    end
-})
-
--- Fly
-local FlyActive = false
-local FlySpeed = 50
-local function FlyLoop()
-    while FlyActive do
-        local root = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            root.Velocity = workspace.CurrentCamera.CFrame.LookVector * FlySpeed
-        end
-        wait()
-    end
-end
-
-TabMain:CreateToggle({
-    Name = "Fly",
-    Flag = "Fly_Toggle",
-    Callback = function(state)
-        FlyActive = state
-        if state then
-            task.spawn(FlyLoop)
-        end
-    end
-})
-
--- Gravity
-TabMisc:CreateSlider({
-    Name = "Gravity",
-    Min = 0,
-    Max = 1000,
-    Default = game.Workspace.Gravity,
-    Flag = "Gravity_Slider",
-    Callback = function(value)
-        game.Workspace.Gravity = value
-    end
-})
-
--- WalkSpeed
-TabMisc:CreateSlider({
-    Name = "WalkSpeed",
-    Min = 16,
-    Max = 500,
-    Default = game.Players.LocalPlayer.Character.Humanoid.WalkSpeed,
-    Flag = "WalkSpeed_Slider",
-    Callback = function(value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
-    end
-})
-
--- JumpPower
-TabMisc:CreateSlider({
-    Name = "JumpPower",
-    Min = 50,
-    Max = 500,
-    Default = game.Players.LocalPlayer.Character.Humanoid.JumpPower,
-    Flag = "JumpPower_Slider",
-    Callback = function(value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
-    end
-})
-
--- Spectate Player
-local Spectating = false
-local SpectateTarget = nil
-
-TabMisc:CreateInput({
-    Name = "Player to Spectate",
-    PlaceholderText = "Enter Player Name",
-    Flag = "Spectate_Player",
-    Callback = function(value)
-        SpectateTarget = game.Players:FindFirstChild(value)
-    end
-})
-
-TabMisc:CreateToggle({
-    Name = "Toggle Spectate",
-    Flag = "Spectate_Toggle",
-    Callback = function(state)
-        Spectating = state
-        if SpectateTarget and Spectating then
-            game.Workspace.CurrentCamera.CameraSubject = SpectateTarget.Character.Humanoid
-        else
-            game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character.Humanoid
-        end
-    end
-})
-
--- Fling
-TabMain:CreateButton({
-    Name = "Fling",
-    Callback = function()
-        local plr = game.Players.LocalPlayer
-        local char = plr.Character or plr.CharacterAdded:Wait()
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        
-        if hrp then
-            local bv = Instance.new("BodyVelocity", hrp)
-            bv.Velocity = Vector3.new(0, 500, 0)
-            wait(0.5)
-            bv.Velocity = Vector3.new(10000, 10000, 10000)
-            wait(0.1)
-            bv:Destroy()
-        end
-    end
-})
-
--- Noclip
-local NoclipActive = false
-TabMain:CreateToggle({
-    Name = "Noclip",
-    Flag = "Noclip_Toggle",
-    Callback = function(state)
-        NoclipActive = state
-        while NoclipActive do
-            for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                if part:IsA("BasePart") and part.CanCollide == true then
-                    part.CanCollide = false
-                end
-            end
-            wait()
-        end
-    end
-})
-
--- **Sukses Notifikasi**
-Rayfield:Notify({
-    Title = "ZDZ Hub",
-    Content = "UI Loaded Successfully!",
-    Duration = 3
-})
+-- UI Toggle
+OrionLib:Init()
