@@ -127,7 +127,7 @@ local Window = Rayfield:CreateWindow({
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
 
-   KeySystem = false, -- Set this to true to use our key system
+   KeySystem = true, -- Set this to true to use our key system
    KeySettings = {
       Title = "Locked",
       Subtitle = "Unlock key",
@@ -140,10 +140,15 @@ local Window = Rayfield:CreateWindow({
 })
 
 local TabInfo = Window:CreateTab("Info", 1510045894) -- Title, Image
+local TabMain = Window:CreateTab("Main", 1510045894) -- Title, Image
+local TabMisc = Window:CreateTab("Misc", 1510045894) -- Title, Image
+local TabScript = Window:CreateTab("Script", 1510045894) -- Title, Image
+
 
 local Paragraph = TabInfo:CreateParagraph({Title = "Version 3.0", Content = "Before this sc not have bypass but now can bypass anti cheat/lag/crash/+fps boost"})
 local Paragraph = TabInfo:CreateParagraph({Title = "ChangeLog Upd", Content = "In This Version We Added +Fly,+Gravity,+Fling and more"})
 local Label = TabInfo:CreateLabel("Owner/Script Maker:Adrian", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
+
 
 local Themes = {
     ["Dark"] = {Background = Color3.fromRGB(25, 25, 25), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 150, 255)},
@@ -161,7 +166,7 @@ local Themes = {
     }
 }
 
-local SelectedTheme = "Dark" -- Default theme
+local SelectedTheme = "Light" -- Default theme
 
 -- Fungsi untuk mengganti tema
 local function ApplyTheme()
@@ -199,7 +204,7 @@ local ThemeDropdown = TabInfo:CreateDropdown({
 
 -- Isi dropdown dengan tema
 for themeName, _ in pairs(Themes) do
-    ThemeDropdown:AddOption(themeName)
+    ThemeDropdown:AddOption(Neon)
 end
 
 -- Tombol Apply Theme
@@ -207,6 +212,7 @@ TabInfo:CreateButton({
     Name = "Apply Theme",
     Callback = ApplyTheme
 })
+
 
 local Button = TabInfo:CreateButton({
    Name = "Unload",
@@ -216,8 +222,7 @@ local Button = TabInfo:CreateButton({
    end,
 })
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-local TabMain = Window:CreateTab("Main", 1510045894) -- Title, Image
+
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -735,9 +740,6 @@ RunService.RenderStepped:Connect(function()
 end)
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-local TabMisc = Window:CreateTab("Misc", 1510045894) -- Title, Image
-
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -1218,9 +1220,6 @@ end)
 -- 🔒 **Mulai Bypass**
 spoofValues()
 
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-local TabScript = Window:CreateTab("Script", 1510045894) -- Title, Image
 
 local Button = TabScript:CreateButton({
    Name = "Load IY",
