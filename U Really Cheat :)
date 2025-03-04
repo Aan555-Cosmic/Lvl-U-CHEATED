@@ -145,6 +145,14 @@ local Paragraph = TabInfo:CreateParagraph({Title = "Version 3.0", Content = "Bef
 local Paragraph = TabInfo:CreateParagraph({Title = "ChangeLog Upd", Content = "In This Version We Added +Fly,+Gravity,+Fling and more"})
 local Label = TabInfo:CreateLabel("Owner/Script Maker:Adrian", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
 
+local Button = TabInfo:CreateButton({
+   Name = "Unload",
+   Callback = function()
+	-- This button will unload Rayfield
+	Rayfield:Destroy()
+   end,
+})
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 local TabMain = Window:CreateTab("Main", 1510045894) -- Title, Image
 
@@ -323,7 +331,7 @@ end)
 local ESPSection = TabMain:CreateSection("ESP Settings")
 
 local ToggleESP = ESPSection:CreateToggle({
-    Name = "Enable ESP",
+    Name = "ESP",
     CurrentValue = false,
     Flag = "ToggleESP",
     Callback = function(state)
@@ -411,7 +419,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable Noclip",
+    Name = "Noclip",
     CurrentValue = false,
     Flag = "NoclipToggle",
     Callback = function(value)
@@ -482,7 +490,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable Fling",
+    Name = "Fling",
     CurrentValue = false,
     Flag = "FlingToggle",
     Callback = function(value)
@@ -566,7 +574,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable Hitbox Expander",
+    Name = "Hitbox",
     CurrentValue = false,
     Flag = "HitboxToggle",
     Callback = function(value)
@@ -636,7 +644,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable Get All Tools",
+    Name = "Get All Tools",
     CurrentValue = false,
     Flag = "GetAllToolsToggle",
     Callback = function(value)
@@ -704,7 +712,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMisc:CreateToggle({
-    Name = "Enable Infinite Jump",
+    Name = "Infinite Jump",
     CurrentValue = false,
     Flag = "InfiniteJumpToggle",
     Callback = function(value)
@@ -789,7 +797,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable Fly",
+    Name = "Fly",
     CurrentValue = false,
     Flag = "FlyToggle",
     Callback = function(value)
@@ -899,7 +907,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable Gravity",
+    Name = "Gravity",
     CurrentValue = false,
     Flag = "GravityToggle",
     Callback = function(value)
@@ -998,7 +1006,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable WalkSpeed",
+    Name = "WalkSpeed",
     CurrentValue = false,
     Flag = "SpeedToggle",
     Callback = function(value)
@@ -1098,7 +1106,7 @@ end
 
 -- 🔘 **Rayfield UI Integration**
 TabMain:CreateToggle({
-    Name = "Enable JumpPower",
+    Name = "JumpPower",
     CurrentValue = false,
     Flag = "JumpToggle",
     Callback = function(value)
@@ -1146,3 +1154,45 @@ end)
 
 -- 🔒 **Mulai Bypass**
 spoofValues()
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local TabScript = Window:CreateTab("Script", 1510045894) -- Title, Image
+
+local Button = TabScript:CreateButton({
+   Name = "Load IY",
+   Callback = function()
+	-- loads IY
+	loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/refs/heads/master/source'))()
+   end,
+})
+
+local Button = TabScript:CreateButton({
+   Name = "Load Redz",
+   Callback = function()
+	-- loads Redz
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/realredz/BloxFruits/refs/heads/main/Source.lua"))()
+   end,
+})
+
+local Button = TabScript:CreateButton({
+   Name = "Load SolixHub(JJI)",
+   Callback = function()
+	-- loads JJI
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/debunked69/Solixreworkkeysystem/refs/heads/main/solix%20new%20keyui.lua"))()
+   end,
+})
+
+local Button = TabScript:CreateButton({
+   Name = "Load ScriptX(Blue Lock rival Style)",
+   Callback = function()
+	-- loads ScriptX
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/ScriptXPaid/Scripts/refs/heads/main/ScriptX%20Login"))()
+   end,
+})
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local TabThe = Window:CreateTab("Themes", 1510045894) -- This is Themes page
+
+
