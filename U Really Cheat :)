@@ -143,6 +143,7 @@ local TabInfo = Window:CreateTab("Info", 1510045894) -- Title, Image
 local TabMain = Window:CreateTab("Main", 1510045894) -- Title, Image
 local TabMisc = Window:CreateTab("Misc", 1510045894) -- Title, Image
 local TabScript = Window:CreateTab("Script", 1510045894) -- Title, Image
+print("Memulai pembuatan UI...")
 
 
 local Paragraph = TabInfo:CreateParagraph({Title = "Version 3.0", Content = "Before this sc not have bypass but now can bypass anti cheat/lag/crash/+fps boost"})
