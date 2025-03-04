@@ -145,6 +145,69 @@ local Paragraph = TabInfo:CreateParagraph({Title = "Version 3.0", Content = "Bef
 local Paragraph = TabInfo:CreateParagraph({Title = "ChangeLog Upd", Content = "In This Version We Added +Fly,+Gravity,+Fling and more"})
 local Label = TabInfo:CreateLabel("Owner/Script Maker:Adrian", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
 
+local Themes = {
+    ["Dark"] = {Background = Color3.fromRGB(25, 25, 25), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 150, 255)},
+    ["Light"] = {Background = Color3.fromRGB(235, 235, 235), TextColor = Color3.fromRGB(0, 0, 0), Accent = Color3.fromRGB(50, 100, 255)},
+    ["Neon"] = {Background = Color3.fromRGB(10, 10, 30), TextColor = Color3.fromRGB(0, 255, 0), Accent = Color3.fromRGB(255, 0, 255)},
+    ["Red"] = {Background = Color3.fromRGB(50, 0, 0), TextColor = Color3.fromRGB(255, 100, 100), Accent = Color3.fromRGB(255, 0, 0)},
+    ["Blue"] = {Background = Color3.fromRGB(0, 0, 50), TextColor = Color3.fromRGB(100, 100, 255), Accent = Color3.fromRGB(0, 100, 255)},
+    ["Green"] = {Background = Color3.fromRGB(0, 50, 0), TextColor = Color3.fromRGB(100, 255, 100), Accent = Color3.fromRGB(0, 255, 0)},
+    ["Purple"] = {Background = Color3.fromRGB(50, 0, 50), TextColor = Color3.fromRGB(200, 100, 255), Accent = Color3.fromRGB(150, 0, 255)},
+    ["Yellow"] = {Background = Color3.fromRGB(50, 50, 0), TextColor = Color3.fromRGB(255, 255, 100), Accent = Color3.fromRGB(255, 200, 0)},
+    ["Black & White"] = {
+        Background = {Color3.fromRGB(0, 0, 0), Color3.fromRGB(255, 255, 255)}, -- Hitam di kiri, putih di kanan
+        TextColor = {Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0)}, -- Teks putih di kiri, hitam di kanan
+        Accent = Color3.fromRGB(128, 128, 128)
+    }
+}
+
+local SelectedTheme = "Dark" -- Default theme
+
+-- Fungsi untuk mengganti tema
+local function ApplyTheme()
+    local theme = Themes[SelectedTheme]
+    if theme then
+        if SelectedTheme == "Black & White" then
+            Rayfield:SetTheme({
+                Background = theme.Background[1], -- Hitam
+                TextColor = theme.TextColor[1], -- Putih
+                Accent = theme.Accent
+            })
+            wait(0.1)
+            Rayfield:SetTheme({
+                Background = theme.Background[2], -- Putih
+                TextColor = theme.TextColor[2] -- Hitam
+            })
+        else
+            Rayfield:SetTheme({
+                Background = theme.Background,
+                TextColor = theme.TextColor,
+                Accent = theme.Accent
+            })
+        end
+    end
+end
+
+-- Dropdown Theme Selector
+local ThemeDropdown = TabInfo:CreateDropdown({
+    Name = "Select Theme",
+    Options = {},
+    Callback = function(option)
+        SelectedTheme = option
+    end
+})
+
+-- Isi dropdown dengan tema
+for themeName, _ in pairs(Themes) do
+    ThemeDropdown:AddOption(themeName)
+end
+
+-- Tombol Apply Theme
+TabInfo:CreateButton({
+    Name = "Apply Theme",
+    Callback = ApplyTheme
+})
+
 local Button = TabInfo:CreateButton({
    Name = "Unload",
    Callback = function()
@@ -1192,7 +1255,4 @@ local Button = TabScript:CreateButton({
 })
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-local TabThe = Window:CreateTab("Themes", 1510045894) -- This is Themes page
-
-
+Rayfield:LoadConfiguration()
