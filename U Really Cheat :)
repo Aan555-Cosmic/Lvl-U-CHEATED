@@ -1,496 +1,205 @@
+-- 🌟 Load Rayfield UI Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Lighting = game:GetService("Lighting")
-local StarterGui = game:GetService("StarterGui")
-local TeleportService = game:GetService("TeleportService")
-
-local player = Players.LocalPlayer
-
--- 🔄 **Self-Healing System** (Mencegah script mati)
-local function safeExecute(func)
-    task.spawn(function()
-        while true do
-            pcall(func)
-            task.wait(0.1)
-        end
-    end)
-end
-
--- 🚀 **FPS Booster (Menghapus efek berat & meningkatkan performa)**
-local function optimizeFPS()
-    safeExecute(function()
-        -- Menghapus Fog (Kabut)
-        Lighting.FogEnd = 9e9
-        Lighting.FogStart = 9e9
-        Lighting.GlobalShadows = false
-        
-        -- Menghapus Efek Berat (Blur, Sun Rays, Bloom)
-        for _, v in pairs(Lighting:GetChildren()) do
-            if v:IsA("PostEffect") then
-                v:Destroy()
-            end
-        end
-        
-        -- Menghapus Partikel & Efek yang Tidak Perlu
-        for _, v in pairs(workspace:GetDescendants()) do
-            if v:IsA("ParticleEmitter") or v:IsA("Trail") then
-                v:Destroy()
-            elseif v:IsA("BasePart") then
-                v.Material = Enum.Material.SmoothPlastic
-            end
-        end
-    end)
-end
-
--- 🛡️ **Bypass Anti-Cheat Ultimate**
-local function bypassAntiCheat()
-    safeExecute(function()
-        local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = 16
-            humanoid.JumpPower = 50
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false) -- Mencegah forced disable
-        end
-    end)
-
-    safeExecute(function()
-        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            root.Velocity, root.RotVelocity = Vector3.zero, Vector3.zero
-        end
-    end)
-end
-
--- 🚀 **Bypass Anti-Lag/Crash (Dynamic CPU Load Balancing + No Memory Leak)**
-local function bypassAntiLag()
-    safeExecute(function()
-        collectgarbage("collect")
-        RunService.Heartbeat:Wait()
-    end)
-end
-
--- 🔍 **Bypass Kick/Ban Detection**
-local function detectKickBan()
-    StarterGui:SetCore("ResetButtonCallback", false) -- Mencegah kick melalui reset
-
-    player.OnTeleport:Connect(function(state)
-        if state == Enum.TeleportState.Failed then
-            warn("🚨 Possible Kick/Ban Detected!")
-        end
-    end)
-
-    game:GetService("CoreGui").ChildRemoved:Connect(function(child)
-        if child.Name == "ErrorPrompt" then
-            warn("🚨 Kick/Ban Detected! Attempting to Bypass...")
-            task.wait(1)
-            TeleportService:Teleport(game.PlaceId, player) -- Teleport ulang ke game
-        end
-    end)
-end
-
--- 🔄 **Auto-Reapply Setelah Respawn**
-player.CharacterAdded:Connect(function()
-    task.wait(2) -- Memberi waktu loading character
-    bypassAntiCheat()
-    bypassAntiLag()
-    optimizeFPS()
-end)
-
--- **Jalankan Semua Sistem Secara Otomatis**
-bypassAntiCheat()
-bypassAntiLag()
-optimizeFPS()
-detectKickBan()
-
 local Window = Rayfield:CreateWindow({
-   Name = "ZDZ Hub",
-   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "Loading...",
-   LoadingSubtitle = "by Aan",
-   Theme = "Light", -- Check https://docs.sirius.menu/rayfield/configuration/themes
-
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
-
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "ZDZ Hub"
-   },
-
-   Discord = {
-      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
-   },
-
-   KeySystem = true, -- Set this to true to use our key system
-   KeySettings = {
-      Title = "Locked",
-      Subtitle = "Unlock key",
-      Note = "Free Key Real-->[Ramadhan2025]", -- Use this to tell the user how to get a key
-      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"Ramadhan2025"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
-   }
+    Name = "ZDZ Hub",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "Please wait...",
+    ConfigurationSaving = { Enabled = true, FileName = "ZDZ_Hub_Config" }
 })
 
+-- 🏆 Tabs
+local TabMain = Window:CreateTab("Main", 1510045894)
+local TabMisc = Window:CreateTab("Misc", 1510045894)
 local TabInfo = Window:CreateTab("Info", 1510045894)
 
-local TabMain = Window:CreateTab("Main", 4483362458)
+-- 🔥 FPS Booster & Lag Reducer
+local function OptimizePerformance()
+    setfpscap(300)
+    game:GetService("RunService"):Set3dRenderingEnabled(false)
+    settings().Rendering.QualityLevel = 1
+    collectgarbage("setpause", 100)
+    collectgarbage("setstepmul", 5000)
+end
+OptimizePerformance()
 
-local TabMisc = Window:CreateTab("Misc", 1510045894)
-
-local TabScript = Window:CreateTab("Script", 1510045894) -- Title, image
-
-
--- Daftar Theme
+-- **🎨 Theme Selector**
 local Themes = {
-    ["Default"] = {Background = Color3.fromRGB(40, 40, 40), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(255, 85, 85)},
-    ["Amber Glow"] = {Background = Color3.fromRGB(255, 191, 0), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(255, 140, 0)},
-    ["Amethyst"] = {Background = Color3.fromRGB(153, 102, 204), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(102, 51, 153)},
-    ["Bloom"] = {Background = Color3.fromRGB(240, 128, 128), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(255, 99, 71)},
-    ["Dark Blue"] = {Background = Color3.fromRGB(15, 15, 50), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 102, 204)},
-    ["Green"] = {Background = Color3.fromRGB(0, 150, 0), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 200, 0)},
-    ["Light"] = {Background = Color3.fromRGB(235, 235, 235), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(150, 150, 150)},
-    ["Ocean"] = {Background = Color3.fromRGB(0, 102, 153), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 128, 255)},
-    ["Serenity"] = {Background = Color3.fromRGB(204, 255, 229), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(102, 255, 178)},
-    ["Black & White"] = {
-        Background = {Color3.fromRGB(0, 0, 0), Color3.fromRGB(255, 255, 255)},
-        TextColor = {Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0)},
-        Accent = Color3.fromRGB(128, 128, 128)
-    },
-    ["Blue & Red"] = {
-        Background = {Color3.fromRGB(0, 0, 255), Color3.fromRGB(255, 0, 0)},
-        TextColor = {Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255)},
-        Accent = Color3.fromRGB(128, 0, 128)
-    }
+    ["Default"] = {Background = Color3.fromRGB(30, 30, 30), TextColor = Color3.fromRGB(255, 255, 255)},
+    ["Red"] = {Background = Color3.fromRGB(255, 0, 0), TextColor = Color3.fromRGB(255, 255, 255)},
+    ["Blue"] = {Background = Color3.fromRGB(0, 0, 255), TextColor = Color3.fromRGB(255, 255, 255)},
+    ["Green"] = {Background = Color3.fromRGB(0, 255, 0), TextColor = Color3.fromRGB(0, 0, 0)}
 }
 
--- Theme Selector Dropdown
 local SelectedTheme = "Default"
+local function ApplyTheme()
+    local theme = Themes[SelectedTheme]
+    if theme then
+        Rayfield:SetTheme({ Background = theme.Background, TextColor = theme.TextColor })
+    end
+end
+
 TabInfo:CreateDropdown({
     Name = "Select Theme",
-    Options = {"Default", "Amber Glow", "Amethyst", "Bloom", "Dark Blue", "Green", "Light", "Ocean", "Serenity", "Black & White", "Blue & Red"},
+    Options = table.keys(Themes),
     CurrentOption = "Default",
-    Callback = function(Value)
-        SelectedTheme = Value
+    Flag = "ThemeDropdown",
+    Callback = function(option)
+        SelectedTheme = option
+        ApplyTheme()
     end
 })
 
--- Apply Theme Button
 TabInfo:CreateButton({
     Name = "Apply Theme",
     Callback = function()
-        local theme = Themes[SelectedTheme]
-        if theme then
-            if SelectedTheme == "Black & White" or SelectedTheme == "Blue & Red" then
-                Rayfield:SetTheme({
-                    Background = theme.Background[1], -- Warna kiri
-                    TextColor = theme.TextColor[1], -- Warna teks kiri
-                    Accent = theme.Accent
-                })
-                wait(0.1)
-                Rayfield:SetTheme({
-                    Background = theme.Background[2], -- Warna kanan
-                    TextColor = theme.TextColor[2], -- Warna teks kanan
-                    Accent = theme.Accent
-                })
-            else
-                Rayfield:SetTheme({
-                    Background = theme.Background,
-                    TextColor = theme.TextColor,
-                    Accent = theme.Accent
-                })
-            end
-        end
+        ApplyTheme()
     end
 })
 
--- Unload Script (Mematikan Semua Skrip)
-TabInfo:CreateButton({
-    Name = "Unload Script",
-    Callback = function()
-        if game.CoreGui:FindFirstChild("Rayfield") then
-            game.CoreGui:FindFirstChild("Rayfield"):Destroy()
-        end
-        for _, v in pairs(getconnections(LocalPlayer.Idled)) do
-            v:Disable()
-        end
-        for _, v in pairs(getconnections(game:GetService("RunService").Stepped)) do
-            v:Disable()
-        end
-        for _, v in pairs(getconnections(game:GetService("RunService").RenderStepped)) do
-            v:Disable()
-        end
-        setfpscap(60)
-        print("Script Unloaded Successfully.")
+-- ✅ **Misc Features**
+-- Infinite Jump
+local InfiniteJump = false
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJump then
+        game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    end
+end)
+
+TabMisc:CreateToggle({
+    Name = "Infinite Jump",
+    Flag = "InfJump_Toggle",
+    Callback = function(state)
+        InfiniteJump = state
     end
 })
 
-
-
--- // Bypass Anti-Cheat & Anti-Detection
-local function BypassAntiCheat()
-    if setfflag then
-        setfflag("HumanoidParallelRemoveNoPhysics", "False")
-        setfflag("HumanoidParallelRemoveNoPhysicsNoSimulate2", "False")
-        setfflag("CrashPadUploadToBacktraceToBacktrace", "False")
-    end
-    for _, v in pairs(getconnections(game:GetService("LogService").MessageOut)) do
-        v:Disable()
-    end
-end
-BypassAntiCheat()
-
--- // Teleport dengan Toggle
-local TeleportEnabled = false
-local function ToggleTeleport()
-    TeleportEnabled = not TeleportEnabled
-    while TeleportEnabled do
-        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local Mouse = game.Players.LocalPlayer:GetMouse()
-            if Mouse.Target then
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Mouse.Hit
-            end
-        end
-        wait(0.1)
-    end
-end
-TabMain:CreateToggle({ Name = "Teleport", Callback = ToggleTeleport })
-
--- // ESP Lengkap dengan Dropdown dan Toggle
-local ESPEnabled = false
-local ESPColor = Color3.fromRGB(255, 0, 0)
-
-local function CreateESP(obj, isPlayer)
-    local Billboard = Instance.new("BillboardGui", obj)
-    Billboard.Size = UDim2.new(0, 100, 0, 40)
-    Billboard.AlwaysOnTop = true
-    local Label = Instance.new("TextLabel", Billboard)
-    Label.Size = UDim2.new(1, 0, 1, 0)
-    Label.BackgroundTransparency = 1
-    Label.TextColor3 = ESPColor
-    Label.TextStrokeTransparency = 0.5
-    Label.Text = isPlayer and obj.Name or obj.Name .. " (" .. math.floor((obj.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude) .. "m)"
-end
-
-local function ToggleESP()
-    ESPEnabled = not ESPEnabled
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= game.Players.LocalPlayer then
-            CreateESP(v.Character:FindFirstChild("Head"), true)
-        end
-    end
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("Model") and obj:FindFirstChild("Handle") then
-            CreateESP(obj.Handle, false)
-        end
-    end
-end
-TabMain:CreateToggle({ Name = "ESP", Callback = ToggleESP })
-TabMain:CreateDropdown({ Name = "ESP Warna", Options = { "Merah", "Hijau", "Biru" }, Callback = function(value)
-    if value == "Merah" then ESPColor = Color3.fromRGB(255, 0, 0) end
-    if value == "Hijau" then ESPColor = Color3.fromRGB(0, 255, 0) end
-    if value == "Biru" then ESPColor = Color3.fromRGB(0, 0, 255) end
-end })
-
--- // Noclip (Bypass Anti-Cheat)
-local NoclipEnabled = false
-local function ToggleNoclip()
-    NoclipEnabled = not NoclipEnabled
-    while NoclipEnabled do
-        for _, v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
+-- Fly
+local FlyActive = false
+local FlySpeed = 50
+local function FlyLoop()
+    while FlyActive do
+        local root = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.Velocity = workspace.CurrentCamera.CFrame.LookVector * FlySpeed
         end
         wait()
     end
 end
-TabMain:CreateToggle({ Name = "Noclip", Callback = ToggleNoclip })
 
--- // Hitbox (Disesuaikan dengan Game)
-local HitboxEnabled = false
-local function ToggleHitbox()
-    HitboxEnabled = not HitboxEnabled
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= game.Players.LocalPlayer then
-            local Head = v.Character and v.Character:FindFirstChild("Head")
-            if Head then
-                Head.Size = HitboxEnabled and Vector3.new(10, 10, 10) or Vector3.new(1, 1, 1)
-                Head.Transparency = HitboxEnabled and 0.5 or 0
-            end
-        end
-    end
-end
-TabMain:CreateToggle({ Name = "Hitbox", Callback = ToggleHitbox })
-
--- // Get All Tools (Tanpa Lag/Crash)
-local function GetAllTools()
-    for _, v in pairs(workspace:GetChildren()) do
-        if v:IsA("Tool") then
-            v.Parent = game.Players.LocalPlayer.Backpack
-        end
-    end
-end
-TabMain:CreateButton({ Name = "Get All Tools", Callback = GetAllTools })
-
--- // Anti TP Kembali (Agar Tidak Terdeteksi)
-local function AntiTPReturn()
-    local OldPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
-    game:GetService("RunService").Stepped:Connect(function()
-        if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - OldPos).Magnitude > 10 then
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(OldPos)
-        end
-    end)
-end
-AntiTPReturn()
-
--- // FPS Booster (Menghapus Fog dan Optimasi Lag)
-local function FPSBooster()
-    sethiddenproperty(game.Lighting, "Technology", Enum.Technology.Compatibility)
-    game.Lighting.GlobalShadows = false
-    game.Lighting.FogEnd = 999999
-    game.Lighting.FogStart = 999999
-    for _, v in pairs(workspace:GetDescendants()) do
-        if v:IsA("BasePart") and v.Material ~= Enum.Material.SmoothPlastic then
-            v.Material = Enum.Material.SmoothPlastic
-        end
-    end
-end
-FPSBooster()
-
-Rayfield:Notify({ Title = "Script Loaded!", Content = "Semua fitur telah diaktifkan!", Duration = 5 })
-
-
-
--- Infinite Jump
-local InfiniteJump = false
-UserInputService.JumpRequest:Connect(function()
-    if InfiniteJump then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end)
-TabMisc:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Callback = function(Value)
-        InfiniteJump = Value
-    end
-})
-
--- Fly System (Mengikuti layar, tidak TP kembali, bisa diam di udara)
-local FlyEnabled = false
-local FlySpeed = 50
-local BodyVelocity, BodyGyro
-TabMisc:CreateToggle({
+TabMain:CreateToggle({
     Name = "Fly",
-    CurrentValue = false,
-    Callback = function(Value)
-        FlyEnabled = Value
-        if FlyEnabled then
-            local Character = LocalPlayer.Character
-            if not Character then return end
-            local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
-            if not HumanoidRootPart then return end
-
-            BodyVelocity = Instance.new("BodyVelocity", HumanoidRootPart)
-            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-
-            BodyGyro = Instance.new("BodyGyro", HumanoidRootPart)
-            BodyGyro.CFrame = workspace.CurrentCamera.CFrame
-            BodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-
-            while FlyEnabled do
-                BodyVelocity.Velocity = workspace.CurrentCamera.CFrame.LookVector * FlySpeed
-                BodyGyro.CFrame = workspace.CurrentCamera.CFrame
-                task.wait()
-            end
-
-            BodyVelocity:Destroy()
-            BodyGyro:Destroy()
+    Flag = "Fly_Toggle",
+    Callback = function(state)
+        FlyActive = state
+        if state then
+            task.spawn(FlyLoop)
         end
     end
 })
-TabMisc:CreateSlider({
-    Name = "Fly Speed",
-    Range = {0, 200},
-    Increment = 1,
-    CurrentValue = 50,
-    Callback = function(Value)
-        FlySpeed = Value
-    end
-})
 
--- Gravity Control (0-1000)
+-- Gravity
 TabMisc:CreateSlider({
     Name = "Gravity",
-    Range = {0, 1000},
-    Increment = 10,
-    CurrentValue = workspace.Gravity,
-    Callback = function(Value)
-        workspace.Gravity = Value
+    Min = 0,
+    Max = 1000,
+    Default = game.Workspace.Gravity,
+    Flag = "Gravity_Slider",
+    Callback = function(value)
+        game.Workspace.Gravity = value
     end
 })
 
--- Fling System (Tidak mental ke void, slider power)
-local FlingPower = 100000
+-- WalkSpeed
+TabMisc:CreateSlider({
+    Name = "WalkSpeed",
+    Min = 16,
+    Max = 500,
+    Default = game.Players.LocalPlayer.Character.Humanoid.WalkSpeed,
+    Flag = "WalkSpeed_Slider",
+    Callback = function(value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+    end
+})
+
+-- JumpPower
+TabMisc:CreateSlider({
+    Name = "JumpPower",
+    Min = 50,
+    Max = 500,
+    Default = game.Players.LocalPlayer.Character.Humanoid.JumpPower,
+    Flag = "JumpPower_Slider",
+    Callback = function(value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
+    end
+})
+
+-- Spectate Player
+local Spectating = false
+local SpectateTarget = nil
+
+TabMisc:CreateInput({
+    Name = "Player to Spectate",
+    PlaceholderText = "Enter Player Name",
+    Flag = "Spectate_Player",
+    Callback = function(value)
+        SpectateTarget = game.Players:FindFirstChild(value)
+    end
+})
+
 TabMisc:CreateToggle({
-    Name = "Fling",
-    CurrentValue = false,
-    Callback = function(Value)
-        if Value then
-            local Character = LocalPlayer.Character
-            if not Character then return end
-            local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
-            if not HumanoidRootPart then return end
-
-            local FlingPart = Instance.new("BodyAngularVelocity", HumanoidRootPart)
-            FlingPart.AngularVelocity = Vector3.new(FlingPower, FlingPower, FlingPower)
-            FlingPart.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-
-            task.wait(1)
-            FlingPart:Destroy()
+    Name = "Toggle Spectate",
+    Flag = "Spectate_Toggle",
+    Callback = function(state)
+        Spectating = state
+        if SpectateTarget and Spectating then
+            game.Workspace.CurrentCamera.CameraSubject = SpectateTarget.Character.Humanoid
+        else
+            game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character.Humanoid
         end
     end
 })
-TabMisc:CreateSlider({
-    Name = "Fling Power",
-    Range = {10000, 10000000000},
-    Increment = 10000,
-    CurrentValue = 100000,
-    Callback = function(Value)
-        FlingPower = Value
+
+-- Fling
+TabMain:CreateButton({
+    Name = "Fling",
+    Callback = function()
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        
+        if hrp then
+            local bv = Instance.new("BodyVelocity", hrp)
+            bv.Velocity = Vector3.new(0, 500, 0)
+            wait(0.5)
+            bv.Velocity = Vector3.new(10000, 10000, 10000)
+            wait(0.1)
+            bv:Destroy()
+        end
     end
 })
 
--- WalkSpeed Control (Tidak TP kembali, Slider 16-250)
-local DefaultWalkSpeed = LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed
-TabMisc:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 250},
-    Increment = 1,
-    CurrentValue = DefaultWalkSpeed,
-    Callback = function(Value)
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+-- Noclip
+local NoclipActive = false
+TabMain:CreateToggle({
+    Name = "Noclip",
+    Flag = "Noclip_Toggle",
+    Callback = function(state)
+        NoclipActive = state
+        while NoclipActive do
+            for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide == true then
+                    part.CanCollide = false
+                end
+            end
+            wait()
+        end
     end
 })
 
--- JumpPower Control (Slider 40-350)
-local DefaultJumpPower = LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower
-TabMisc:CreateSlider({
-    Name = "JumpPower",
-    Range = {40, 350},
-    Increment = 1,
-    CurrentValue = DefaultJumpPower,
-    Callback = function(Value)
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = Value
-    end
+-- **Sukses Notifikasi**
+Rayfield:Notify({
+    Title = "ZDZ Hub",
+    Content = "UI Loaded Successfully!",
+    Duration = 3
 })
-
-
-Rayfield:LoadConfiguration()
