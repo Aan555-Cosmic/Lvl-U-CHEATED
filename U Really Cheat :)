@@ -33,7 +33,7 @@ KeyTab:CreateInput({
             KeyVerified = true
             Rayfield:Notify({Title = "✅ Correct Key!", Content = "Welcome to ZDZ Hub!"})
             task.wait(2)
-            Rayfield:DestroyWindow(KeyWindow)
+            KeyWindow:Destroy() -- ✅ Menggunakan Destroy() agar UI benar-benar hilang
             loadMainUI()
         else
             Rayfield:Notify({Title = "❌ Incorrect Key!", Content = "Please try again!"})
@@ -46,10 +46,16 @@ function loadMainUI()
     -- 🔄 **Self-Healing System (Safe & No Crashes)**
     local function safeExecute(func)
         task.spawn(function()
+            local errorCount = 0
             while task.wait(0.1) do
                 local success, err = pcall(func)
                 if not success then
                     warn("⚠️ Error: " .. err)
+                    errorCount = errorCount + 1
+                    if errorCount > 10 then
+                        warn("❌ Too many errors, stopping execution.")
+                        break
+                    end
                 end
             end
         end)
@@ -63,14 +69,14 @@ function loadMainUI()
             Lighting.GlobalShadows = false
 
             for _, v in pairs(Lighting:GetChildren()) do
-                if v:IsA("PostEffect") and not v:IsA("DepthOfFieldEffect") then
+                if v:IsA("PostEffect") and not v:IsA("DepthOfFieldEffect") and not v:IsA("BloomEffect") then
                     v:Destroy()
                 end
             end
 
             for _, v in pairs(workspace:GetDescendants()) do
                 if v:IsA("ParticleEmitter") or v:IsA("Trail") then
-                    v:Destroy()
+                    v.Enabled = false -- ✅ Tidak dihancurkan, hanya dimatikan
                 elseif v:IsA("BasePart") and v.Material ~= Enum.Material.ForceField then
                     v.Material = Enum.Material.SmoothPlastic
                 end
@@ -84,13 +90,16 @@ function loadMainUI()
             local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
             if humanoid then
                 humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false) -- ✅ Tambahan
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false) -- ✅ Tambahan
             end
         end)
 
         safeExecute(function()
             local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
             if root then
-                root.Velocity, root.RotVelocity = Vector3.zero, Vector3.zero
+                root.Velocity = Vector3.new(math.random(), math.random(), math.random()) -- ✅ Bypass deteksi freeze velocity
+                root.RotVelocity = Vector3.new(math.random(), math.random(), math.random()) -- ✅ Bypass rotasi
             end
         end)
     end
@@ -101,15 +110,23 @@ function loadMainUI()
 
         player.OnTeleport:Connect(function(state)
             if state == Enum.TeleportState.Failed then
-                warn("🚨 Possible Kick/Ban Detected!")
+                warn("🚨 Possible Kick/Ban Detected! Attempting Recovery...")
+                task.wait(1)
+                TeleportService:Teleport(game.PlaceId, player)
             end
+        end)
+
+        game:BindToClose(function()
+            warn("⚠️ Server shutdown detected! Attempting to rejoin...")
+            task.wait(0.5)
+            TeleportService:Teleport(game.PlaceId, player)
         end)
 
         game:GetService("CoreGui").ChildRemoved:Connect(function(child)
             if child.Name == "ErrorPrompt" then
-                warn("🚨 Kick/Ban Detected! Trying to Bypass...")
+                warn("🚨 Kick/Ban Detected! Attempting Recovery...")
                 task.wait(1)
-                TeleportService:Teleport(game.PlaceId, player)
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
             end
         end)
     end
