@@ -11,10 +11,11 @@ local player = Players.LocalPlayer
 -- 🔑 **Key System**
 local CorrectKey = "Ramadhan2025"
 local KeyVerified = false
+local KeyWindow
 
-local KeyWindow = Rayfield:CreateWindow({
+-- ✅ **Membuat Window Key System**
+KeyWindow = Rayfield:CreateWindow({
     Name = "Key System",
-    Icon = 0,
     LoadingTitle = "Verifying...",
     LoadingSubtitle = "Enter the key to continue",
     Theme = "Light"
@@ -30,12 +31,13 @@ local function verifyKey(Input)
         Rayfield:Notify({Title = "✅ Correct Key!", Content = "Welcome to ZDZ Hub!"})
         
         task.wait(1)
-        
+
         -- ✅ **Menghapus Key Window setelah verifikasi sukses**
         pcall(function()
             KeyWindow:Destroy()
+            KeyWindow = nil -- Hapus referensi agar tidak ada bug
         end)
-        
+
         task.wait(0.5)
         loadMainUI()
     else
@@ -47,12 +49,26 @@ KeyTab:CreateInput({
     Name = "Enter Key",
     PlaceholderText = "Type your key here...",
     RemoveTextAfterFocusLost = false,
-    Callback = verifyKey
+    Callback = function(Input)
+        task.spawn(function() -- ✅ Mencegah callback error
+            verifyKey(Input)
+        end)
+    end
 })
 
 -- 🚀 **Function to Load Main UI After Key Verification**
 function loadMainUI()
-    -- 🔄 **Self-Healing System (Safe & No Crashes)**
+    if not KeyVerified then return end -- ✅ **Pastikan Key sudah diverifikasi sebelum memuat UI utama**
+
+    -- ✅ **Rayfield UI**
+    local Window = Rayfield:CreateWindow({
+        Name = "ZDZ Hub",
+        LoadingTitle = "Loading...",
+        LoadingSubtitle = "by Aan",
+        Theme = "Light"
+    })
+
+    -- 🔄 **Self-Healing System (Mencegah Crash & Error)**
     local function safeExecute(func)
         task.spawn(function()
             local errorCount = 0
@@ -70,7 +86,7 @@ function loadMainUI()
         end)
     end
 
-    -- 🚀 **FPS Booster (Safe & Doesn't Break Visual Effects)**
+    -- 🚀 **FPS Booster (Tanpa Merusak Visual)**
     local function optimizeFPS()
         safeExecute(function()
             Lighting.FogEnd = 1e6
@@ -99,8 +115,8 @@ function loadMainUI()
             local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
             if humanoid then
                 humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false) -- ✅ Tambahan
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false) -- ✅ Tambahan
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
             end
         end)
 
@@ -147,19 +163,10 @@ function loadMainUI()
         optimizeFPS()
     end)
 
-    -- **Run All Systems**
+    -- **Jalankan Semua Sistem**
     bypassAntiCheat()
     optimizeFPS()
     detectKickBan()
-
-    -- ✅ **Rayfield UI**
-    local Window = Rayfield:CreateWindow({
-        Name = "ZDZ Hub",
-        Icon = 0,
-        LoadingTitle = "Loading...",
-        LoadingSubtitle = "by Aan",
-        Theme = "Light"
-    })
 end
 
 
