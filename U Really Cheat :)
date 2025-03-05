@@ -29,7 +29,7 @@ local function verifyKey(Input)
 
         -- ✅ **Hapus Key Window dengan Aman**
         pcall(function()
-            if KeyWindow and KeyWindow.Destroy then
+            if KeyWindow then
                 KeyWindow:Destroy()
             end
         end)
@@ -92,14 +92,14 @@ function loadMainUI()
     -- 🔄 **Auto-Reapply After Respawn**
     player.CharacterAdded:Connect(function()
         task.wait(1)
-        optimizeFPS()
-        bypassAntiCheat()
+        pcall(optimizeFPS)
+        pcall(bypassAntiCheat)
     end)
 
     -- ✅ Jalankan Sistem
-    optimizeFPS()
-    bypassAntiCheat()
-    detectKickBan()
+    pcall(optimizeFPS)
+    pcall(bypassAntiCheat)
+    pcall(detectKickBan)
 
     -- 🔍 **Bypass Anti-Cheat Advanced**
     RunService.Stepped:Connect(function()
@@ -192,6 +192,18 @@ local ESPEnabled = false
 local ESPColor = Color3.fromRGB(255, 0, 0)
 local ESPObjects = {}
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HRP = Character:FindFirstChild("HumanoidRootPart")
+local LastPosition = HRP and HRP.Position or Vector3.zero
+local TeleportThreshold = 10
+local TweenInfoSettings = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+-- ✅ **Buat ESP dengan Sistem Optimal**
 local function CreateESP(obj, isPlayer)
     if not obj or obj:FindFirstChild("ESP") then return end
 
@@ -203,7 +215,7 @@ local function CreateESP(obj, isPlayer)
     Billboard.ResetOnSpawn = false
     Billboard.Parent = obj
 
-    local Label = Instance.new("TextLabel", Billboard)
+    local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(1, 0, 1, 0)
     Label.BackgroundTransparency = 1
     Label.TextColor3 = ESPColor
@@ -211,35 +223,34 @@ local function CreateESP(obj, isPlayer)
     Label.TextScaled = true
     Label.Font = Enum.Font.SourceSansBold
     Label.Text = isPlayer and obj.Parent.Name or obj.Name
+    Label.Parent = Billboard
 
     ESPObjects[obj] = Billboard
 
-    -- 🔄 **Auto-Update ESP dengan Optimal**
+    -- 🔄 **Auto-Update ESP dengan Smooth**
     task.spawn(function()
-        while ESPEnabled and obj and obj.Parent do
-            task.wait(0.25) -- ⏳ **Update lebih cepat & smooth**
-            local PlayerHRP = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if obj and obj.Parent and PlayerHRP then
-                local Distance = (obj.Position - PlayerHRP.Position).Magnitude
-                Label.Text = isPlayer and obj.Parent.Name or (obj.Name .. " (" .. math.floor(Distance) .. "m)")
-            end
+        while ESPEnabled and obj and obj.Parent and LocalPlayer and LocalPlayer.Character and HRP do
+            task.wait(0.2) -- ⏳ **Optimal update**
+            local Distance = (obj.Position - HRP.Position).Magnitude
+            Label.Text = isPlayer and obj.Parent.Name or (obj.Name .. " (" .. math.floor(Distance) .. "m)")
         end
         if Billboard then Billboard:Destroy() end
     end)
 end
 
+-- 🔄 **Update ESP Secara Otomatis**
 local function UpdateESP()
-    -- ❌ **Hapus semua ESP lama dengan Aman**
+    -- ❌ **Hapus semua ESP lama dengan aman**
     for obj, gui in pairs(ESPObjects) do
         if gui and gui.Parent then gui:Destroy() end
     end
     ESPObjects = {}
 
     if ESPEnabled then
-        for _, v in ipairs(game.Players:GetPlayers()) do
-            if v ~= game.Players.LocalPlayer and v.Character then
-                local head = v.Character:FindFirstChild("HumanoidRootPart") or v.Character:FindFirstChild("Head")
-                if head then CreateESP(head, true) end
+        for _, v in ipairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character then
+                local Head = v.Character:FindFirstChild("HumanoidRootPart") or v.Character:FindFirstChild("Head")
+                if Head then CreateESP(Head, true) end
             end
         end
         for _, obj in ipairs(workspace:GetDescendants()) do
@@ -250,6 +261,7 @@ local function UpdateESP()
     end
 end
 
+-- 🔘 **Toggle ESP**
 TabMain:CreateToggle({
     Name = "ESP",
     Callback = function(state)
@@ -258,6 +270,7 @@ TabMain:CreateToggle({
     end
 })
 
+-- 🎨 **Warna ESP Selector**
 TabMain:CreateDropdown({
     Name = "ESP Warna",
     Options = { "Merah", "Hijau", "Biru" },
@@ -266,7 +279,7 @@ TabMain:CreateDropdown({
                    value == "Hijau" and Color3.fromRGB(0, 255, 0) or
                    Color3.fromRGB(0, 0, 255)
 
-        -- 🔄 **Perbarui warna ESP tanpa delay**
+        -- 🔄 **Perbarui warna ESP langsung**
         for _, gui in pairs(ESPObjects) do
             local label = gui:FindFirstChildOfClass("TextLabel")
             if label then label.TextColor3 = ESPColor end
@@ -275,32 +288,41 @@ TabMain:CreateDropdown({
 })
 
 -- 🔄 **Auto Refresh ESP Saat Pemain Masuk/Keluar**
-game.Players.PlayerAdded:Connect(UpdateESP)
-game.Players.PlayerRemoving:Connect(UpdateESP)
+Players.PlayerAdded:Connect(UpdateESP)
+Players.PlayerRemoving:Connect(UpdateESP)
 
 -- // 🛡️ **Anti TP Kembali dengan Smooth Tweening**
-local TweenService = game:GetService("TweenService")
-local HRP = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-local LastPosition = HRP and HRP.Position or Vector3.zero
-local TeleportThreshold = 10
-local TweenInfoSettings = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+RunService.Stepped:Connect(function()
+    local Character = LocalPlayer.Character
+    if Character then
+        local HRP = Character:FindFirstChild("HumanoidRootPart")
+        if HRP then
+            local Distance = (HRP.Position - LastPosition).Magnitude
 
-game:GetService("RunService").Stepped:Connect(function()
-    HRP = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if HRP then
-        local Distance = (HRP.Position - LastPosition).Magnitude
-
-        -- ✅ **Deteksi teleportasi ilegal dengan lebih cepat**
-        if Distance > TeleportThreshold then
-            local Tween = TweenService:Create(HRP, TweenInfoSettings, { Position = LastPosition })
-            Tween:Play()
-        else
-            LastPosition = HRP.Position
+            -- ✅ **Deteksi teleportasi ilegal dengan cepat**
+            if Distance > TeleportThreshold then
+                local Tween = TweenService:Create(HRP, TweenInfoSettings, { Position = LastPosition })
+                Tween:Play()
+            else
+                LastPosition = HRP.Position
+            end
         end
     end
 end)
 
-Rayfield:Notify({ Title = "✅ Script Loaded!", Content = "Semua fitur telah diperbaiki dan dioptimalkan!", Duration = 5 })
+-- 🔄 **Handle Respawn agar Tidak Bug**
+LocalPlayer.CharacterAdded:Connect(function(NewCharacter)
+    task.wait(1)
+    HRP = NewCharacter:FindFirstChild("HumanoidRootPart") or NewCharacter:WaitForChild("HumanoidRootPart")
+    LastPosition = HRP.Position
+end)
+
+Rayfield:Notify({
+    Title = "✅ Script Loaded!",
+    Content = "ESP & Anti TP Kembali telah dioptimalkan!",
+    Duration = 5
+})
+
 
 local InfiniteJump = false
 local FlyEnabled = false
@@ -310,6 +332,7 @@ local DefaultJumpPower = 50
 local FlingPower = 100000
 local GravityValue = workspace.Gravity
 local BodyVelocity, BodyGyro, FlingPart
+local FlyConnection
 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -319,9 +342,12 @@ local LocalPlayer = game.Players.LocalPlayer
 local function EnableInfiniteJump()
     UserInputService.JumpRequest:Connect(function()
         if InfiniteJump then
-            local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if Humanoid then
-                Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            local Character = LocalPlayer.Character
+            if Character then
+                local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+                if Humanoid then
+                    Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
             end
         end
     end)
@@ -342,6 +368,7 @@ end)
 
 -- // ✅ FIX: Fly lebih smooth, tidak lag, dan lebih responsif
 local function StopFly()
+    if FlyConnection then FlyConnection:Disconnect() FlyConnection = nil end
     if BodyVelocity then BodyVelocity:Destroy() BodyVelocity = nil end
     if BodyGyro then BodyGyro:Destroy() BodyGyro = nil end
 end
@@ -352,9 +379,12 @@ TabMisc:CreateToggle({
     Callback = function(Value)
         FlyEnabled = Value
         local Character = LocalPlayer.Character
-        local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+        if not Character then return end
+        
+        local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+        if not HumanoidRootPart then return end
 
-        if FlyEnabled and HumanoidRootPart then
+        if FlyEnabled then
             BodyVelocity = Instance.new("BodyVelocity", HumanoidRootPart)
             BodyVelocity.Velocity = Vector3.zero
             BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
@@ -363,7 +393,7 @@ TabMisc:CreateToggle({
             BodyGyro.CFrame = workspace.CurrentCamera.CFrame
             BodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
 
-            RunService.Heartbeat:Connect(function()
+            FlyConnection = RunService.Heartbeat:Connect(function()
                 if FlyEnabled and HumanoidRootPart then
                     BodyVelocity.Velocity = workspace.CurrentCamera.CFrame.LookVector * FlySpeed
                     BodyGyro.CFrame = workspace.CurrentCamera.CFrame
@@ -413,7 +443,9 @@ TabMisc:CreateToggle({
     Callback = function(Value)
         if Value then
             local Character = LocalPlayer.Character
-            local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+            if not Character then return end
+
+            local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
             if not HumanoidRootPart then return end
 
             FlingPart = Instance.new("BodyAngularVelocity", HumanoidRootPart)
@@ -447,10 +479,13 @@ TabMisc:CreateSlider({
     Increment = 1,
     CurrentValue = DefaultWalkSpeed,
     Callback = function(Value)
-        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if Humanoid then
-            Humanoid.WalkSpeed = Value
-            DefaultWalkSpeed = Value
+        local Character = LocalPlayer.Character
+        if Character then
+            local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+            if Humanoid then
+                Humanoid.WalkSpeed = Value
+                DefaultWalkSpeed = Value
+            end
         end
     end
 })
@@ -470,10 +505,13 @@ TabMisc:CreateSlider({
     Increment = 1,
     CurrentValue = DefaultJumpPower,
     Callback = function(Value)
-        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if Humanoid then
-            Humanoid.JumpPower = Value
-            DefaultJumpPower = Value
+        local Character = LocalPlayer.Character
+        if Character then
+            local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+            if Humanoid then
+                Humanoid.JumpPower = Value
+                DefaultJumpPower = Value
+            end
         end
     end
 })
@@ -486,4 +524,4 @@ LocalPlayer.CharacterAdded:Connect(function(Character)
     end
 end)
 
-Rayfield:LoadConfiguration
+Rayfield:LoadConfiguration()
