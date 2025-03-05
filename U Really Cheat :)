@@ -24,21 +24,30 @@ local KeyTab = KeyWindow:CreateTab("Key Verification")
 
 KeyTab:CreateParagraph({Title = "Tips", Content = "Free Key --> [Ramadhan2025]"})
 
+local function verifyKey(Input)
+    if Input == CorrectKey then
+        KeyVerified = true
+        Rayfield:Notify({Title = "✅ Correct Key!", Content = "Welcome to ZDZ Hub!"})
+        
+        task.wait(1)
+        
+        -- ✅ **Menghapus Key Window setelah verifikasi sukses**
+        pcall(function()
+            KeyWindow:Destroy()
+        end)
+        
+        task.wait(0.5)
+        loadMainUI()
+    else
+        Rayfield:Notify({Title = "❌ Incorrect Key!", Content = "Please try again!"})
+    end
+end
+
 KeyTab:CreateInput({
     Name = "Enter Key",
     PlaceholderText = "Type your key here...",
     RemoveTextAfterFocusLost = false,
-    Callback = function(Input)
-        if Input == CorrectKey then
-            KeyVerified = true
-            Rayfield:Notify({Title = "✅ Correct Key!", Content = "Welcome to ZDZ Hub!"})
-            task.wait(2)
-            KeyWindow:Destroy() -- ✅ Menggunakan Destroy() agar UI benar-benar hilang
-            loadMainUI()
-        else
-            Rayfield:Notify({Title = "❌ Incorrect Key!", Content = "Please try again!"})
-        end
-    end
+    Callback = verifyKey
 })
 
 -- 🚀 **Function to Load Main UI After Key Verification**
