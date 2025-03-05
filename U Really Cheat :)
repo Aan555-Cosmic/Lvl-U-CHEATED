@@ -1,146 +1,514 @@
--- Load Rayfield UI Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-if not Rayfield then
-    warn("Rayfield gagal dimuat!")
-    return
-end
 
-local Window = Rayfield:CreateWindow({Name = "My Script"})
-if not Window then
-    warn("Window gagal dibuat!")
-    return
-end
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local StarterGui = game:GetService("StarterGui")
+local TeleportService = game:GetService("TeleportService")
 
--- Tab Utama
-local TabMain = Window:CreateTab("Main")
+local player = Players.LocalPlayer
 
--- **Memuat konfigurasi UI sebelumnya**
-Rayfield:LoadConfiguration()
+-- 🔑 **Key System**
+local CorrectKey = "Ramadhan2025"
+local KeyVerified = false
 
--- ESP System
-local ESP_Toggle = false
-local function ESP(player)
-    if not player.Character or not player.Character:FindFirstChild("Head") then return end
-    
-    local Billboard = Instance.new("BillboardGui")
-    Billboard.Adornee = player.Character.Head
-    Billboard.Size = UDim2.new(4, 0, 1, 0)
-    Billboard.StudsOffset = Vector3.new(0, 2, 0)
-    Billboard.AlwaysOnTop = true
+local KeyWindow = Rayfield:CreateWindow({
+    Name = "Key System",
+    Icon = 0,
+    LoadingTitle = "Verifying...",
+    LoadingSubtitle = "Enter the key to continue",
+    Theme = "Light"
+})
 
-    local TextLabel = Instance.new("TextLabel")
-    TextLabel.Parent = Billboard
-    TextLabel.Size = UDim2.new(1, 0, 1, 0)
-    TextLabel.BackgroundTransparency = 1
-    TextLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-    TextLabel.TextScaled = true
-    TextLabel.Text = player.Name
+local KeyTab = KeyWindow:CreateTab("Key Verification")
 
-    Billboard.Parent = game.CoreGui
-end
+KeyTab:CreateParagraph({Title = "Tips", Content = "Free Key --> [Ramadhan2025]"})
 
-local function EnableESP()
-    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            ESP(player)
+KeyTab:CreateInput({
+    Name = "Enter Key",
+    PlaceholderText = "Type your key here...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Input)
+        if Input == CorrectKey then
+            KeyVerified = true
+            Rayfield:Notify({Title = "✅ Correct Key!", Content = "Welcome to ZDZ Hub!"})
+            task.wait(2)
+            Rayfield:DestroyWindow(KeyWindow)
+            loadMainUI()
+        else
+            Rayfield:Notify({Title = "❌ Incorrect Key!", Content = "Please try again!"})
         end
     end
-end
+})
 
-TabMain:CreateToggle({
-    Name = "ESP Players",
-    Callback = function(Value)
-        ESP_Toggle = Value
-        if ESP_Toggle then
-            EnableESP()
-        else
-            for _, v in pairs(game.CoreGui:GetChildren()) do
-                if v:IsA("BillboardGui") then
+-- 🚀 **Function to Load Main UI After Key Verification**
+function loadMainUI()
+    -- 🔄 **Self-Healing System (Safe & No Crashes)**
+    local function safeExecute(func)
+        task.spawn(function()
+            while task.wait(0.1) do
+                local success, err = pcall(func)
+                if not success then
+                    warn("⚠️ Error: " .. err)
+                end
+            end
+        end)
+    end
+
+    -- 🚀 **FPS Booster (Safe & Doesn't Break Visual Effects)**
+    local function optimizeFPS()
+        safeExecute(function()
+            Lighting.FogEnd = 1e6
+            Lighting.FogStart = 1e6
+            Lighting.GlobalShadows = false
+
+            for _, v in pairs(Lighting:GetChildren()) do
+                if v:IsA("PostEffect") and not v:IsA("DepthOfFieldEffect") then
                     v:Destroy()
                 end
             end
-        end
-    end
-})
 
--- WalkSpeed Hack
-TabMain:CreateToggle({
-    Name = "WalkSpeed (50)",
-    Flag = "WalkSpeedToggle", -- **Menyimpan status toggle**
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                    v:Destroy()
+                elseif v:IsA("BasePart") and v.Material ~= Enum.Material.ForceField then
+                    v.Material = Enum.Material.SmoothPlastic
+                end
+            end
+        end)
+    end
+
+    -- 🛡️ **Bypass Anti-Cheat**
+    local function bypassAntiCheat()
+        safeExecute(function()
+            local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+            if humanoid then
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+            end
+        end)
+
+        safeExecute(function()
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.Velocity, root.RotVelocity = Vector3.zero, Vector3.zero
+            end
+        end)
+    end
+
+    -- 🔍 **Bypass Kick/Ban Detection**
+    local function detectKickBan()
+        StarterGui:SetCore("ResetButtonCallback", false)
+
+        player.OnTeleport:Connect(function(state)
+            if state == Enum.TeleportState.Failed then
+                warn("🚨 Possible Kick/Ban Detected!")
+            end
+        end)
+
+        game:GetService("CoreGui").ChildRemoved:Connect(function(child)
+            if child.Name == "ErrorPrompt" then
+                warn("🚨 Kick/Ban Detected! Trying to Bypass...")
+                task.wait(1)
+                TeleportService:Teleport(game.PlaceId, player)
+            end
+        end)
+    end
+
+    -- 🔄 **Auto-Reapply After Respawn**
+    player.CharacterAdded:Connect(function()
+        task.wait(2)
+        bypassAntiCheat()
+        optimizeFPS()
+    end)
+
+    -- **Run All Systems**
+    bypassAntiCheat()
+    optimizeFPS()
+    detectKickBan()
+
+    -- ✅ **Rayfield UI**
+    local Window = Rayfield:CreateWindow({
+        Name = "ZDZ Hub",
+        Icon = 0,
+        LoadingTitle = "Loading...",
+        LoadingSubtitle = "by Aan",
+        Theme = "Light"
+    })
+end
+
+
+-- **Tabs**
+local TabInfo = Window:CreateTab("Info", 1510045894)
+local TabMain = Window:CreateTab("Main", 4483362458)
+local TabMisc = Window:CreateTab("Misc", 1510045894)
+local TabScript = Window:CreateTab("Script", 1510045894)
+
+-- **Theme Selector**
+local Themes = {
+    ["Default"] = {Background = Color3.fromRGB(40, 40, 40), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(255, 85, 85)},
+    ["Amber Glow"] = {Background = Color3.fromRGB(255, 191, 0), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(255, 140, 0)},
+    ["Amethyst"] = {Background = Color3.fromRGB(153, 102, 204), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(102, 51, 153)},
+    ["Bloom"] = {Background = Color3.fromRGB(240, 128, 128), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(255, 99, 71)},
+    ["Dark Blue"] = {Background = Color3.fromRGB(15, 15, 50), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 102, 204)},
+    ["Green"] = {Background = Color3.fromRGB(0, 150, 0), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 200, 0)},
+    ["Light"] = {Background = Color3.fromRGB(235, 235, 235), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(150, 150, 150)},
+    ["Ocean"] = {Background = Color3.fromRGB(0, 102, 153), TextColor = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(0, 128, 255)},
+    ["Serenity"] = {Background = Color3.fromRGB(204, 255, 229), TextColor = Color3.fromRGB(50, 50, 50), Accent = Color3.fromRGB(102, 255, 178)}
+}
+
+local SelectedTheme = "Default"
+
+TabInfo:CreateDropdown({
+    Name = "Select Theme",
+    Options = {"Default", "Amber Glow", "Amethyst", "Bloom", "Dark Blue", "Green", "Light", "Ocean", "Serenity"},
+    CurrentOption = "Default",
     Callback = function(Value)
-        local char = game.Players.LocalPlayer.Character
-        if char and char:FindFirstChild("Humanoid") then
-            char.Humanoid.WalkSpeed = Value and 50 or 16
+        if Themes[Value] then
+            SelectedTheme = Value
+        else
+            Rayfield:Notify({Title = "❌ Invalid Theme", Content = "Theme not found!"})
         end
     end
 })
 
--- JumpPower Hack
-TabMain:CreateToggle({
-    Name = "JumpPower (100)",
-    Flag = "JumpPowerToggle", -- **Menyimpan status toggle**
-    Callback = function(Value)
-        local char = game.Players.LocalPlayer.Character
-        if char and char:FindFirstChild("Humanoid") then
-            char.Humanoid.JumpPower = Value and 100 or 50
+TabInfo:CreateButton({
+    Name = "Apply Theme",
+    Callback = function()
+        local theme = Themes[SelectedTheme]
+        if theme then
+            Rayfield:SetTheme({
+                Background = theme.Background,
+                TextColor = theme.TextColor,
+                Accent = theme.Accent
+            })
+            Rayfield:Notify({Title = "✅ Theme Applied", Content = "Successfully applied theme: " .. SelectedTheme})
+        else
+            Rayfield:Notify({Title = "❌ Invalid Theme", Content = "Theme not found!"})
         end
     end
 })
 
--- Fly System
-local Fly_Toggle = false
-local BodyVelocity
-
-local function EnableFly()
-    local player = game.Players.LocalPlayer
-    local char = player.Character
-    local humanoidRootPart = char and char:FindFirstChild("HumanoidRootPart")
-
-    if humanoidRootPart then
-        if not BodyVelocity then
-            BodyVelocity = Instance.new("BodyVelocity")
-            BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-            BodyVelocity.Velocity = Vector3.new(0, 50, 0)
-            BodyVelocity.Parent = humanoidRootPart
+-- **Unload Script (Fixed)**
+TabInfo:CreateButton({
+    Name = "Unload Script",
+    Callback = function()
+        if game.CoreGui:FindFirstChild("Rayfield") then
+            game.CoreGui:FindFirstChild("Rayfield"):Destroy()
         end
+
+        local LocalPlayer = game.Players.LocalPlayer
+        if LocalPlayer and LocalPlayer:FindFirstChild("Idled") then
+            for _, v in pairs(getconnections(LocalPlayer.Idled)) do
+                pcall(function() v:Disable() end)
+            end
+        end
+
+        for _, service in ipairs({"RunService", "RenderStepped"}) do
+            for _, v in pairs(getconnections(game:GetService(service).Stepped)) do
+                pcall(function() v:Disable() end)
+            end
+        end
+
+        pcall(function() setfpscap(60) end)
+        Rayfield:Notify({Title = "✅ Script Unloaded", Content = "ZDZ Hub has been unloaded successfully!"})
+    end
+})
+
+-- **Teleport with Toggle (Fixed)**
+local TeleportEnabled = false
+local function ToggleTeleport()
+    TeleportEnabled = not TeleportEnabled
+    Rayfield:Notify({
+        Title = TeleportEnabled and "✅ Teleport Enabled" or "❌ Teleport Disabled",
+        Content = "Click anywhere to teleport"
+    })
+    
+    while TeleportEnabled do
+        task.wait(0.1)
+        local player = game.Players.LocalPlayer
+        local mouse = player:GetMouse()
+        if mouse.Target and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p)
+        end
+        if not TeleportEnabled then break end
     end
 end
 
-TabMain:CreateToggle({
-    Name = "Fly",
-    Flag = "FlyToggle", -- **Menyimpan status toggle**
-    Callback = function(Value)
-        Fly_Toggle = Value
-        if Fly_Toggle then
-            EnableFly()
-        else
-            if BodyVelocity then
-                BodyVelocity:Destroy()
-                BodyVelocity = nil
-            end
-        end
-    end
-})
+TabMain:CreateToggle({ Name = "Teleport", Callback = ToggleTeleport })
 
--- Anti Teleport Kembali
-local function AntiTPKembali()
-    local player = game.Players.LocalPlayer
-    if not player.Character then return end
 
-    local HumanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
-    if HumanoidRootPart then
-        HumanoidRootPart:GetPropertyChangedSignal("Position"):Connect(function()
-            if not Fly_Toggle then
-                HumanoidRootPart.Position = HumanoidRootPart.Position + Vector3.new(math.random(-5, 5), 0, math.random(-5, 5))
+-- // ESP Lengkap dengan Auto Refresh
+local ESPEnabled = false
+local ESPColor = Color3.fromRGB(255, 0, 0)
+local ESPObjects = {}
+
+local function CreateESP(obj, isPlayer)
+    if not obj or obj:FindFirstChild("ESP") then return end
+
+    local Billboard = Instance.new("BillboardGui", obj)
+    Billboard.Name = "ESP"
+    Billboard.Size = UDim2.new(0, 100, 0, 40)
+    Billboard.AlwaysOnTop = true
+    Billboard.Adornee = obj
+    Billboard.ResetOnSpawn = false
+    table.insert(ESPObjects, Billboard)
+
+    local Label = Instance.new("TextLabel", Billboard)
+    Label.Size = UDim2.new(1, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = ESPColor
+    Label.TextStrokeTransparency = 0.5
+    Label.TextScaled = true
+    Label.Font = Enum.Font.SourceSansBold
+    Label.Text = isPlayer and obj.Parent.Name or obj.Name
+
+    if not isPlayer then
+        task.spawn(function()
+            while ESPEnabled and obj.Parent do
+                task.wait(0.5) -- Optimasi agar tidak terus-menerus berjalan
+                local Distance = (obj.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                Label.Text = obj.Name .. " (" .. math.floor(Distance) .. "m)"
             end
+            Billboard:Destroy()
         end)
     end
 end
 
-AntiTPKembali()
+local function UpdateESP()
+    -- Hapus semua ESP lama
+    for _, gui in ipairs(ESPObjects) do
+        if gui and gui.Parent then gui:Destroy() end
+    end
+    table.clear(ESPObjects)
 
-Rayfield:Notify({
-    Title = "Script Loaded",
-    Content = "All Features Activated!",
-    Duration = 5
+    if ESPEnabled then
+        for _, v in ipairs(game.Players:GetPlayers()) do
+            if v ~= game.Players.LocalPlayer and v.Character then
+                local head = v.Character:FindFirstChild("HumanoidRootPart") or v.Character:FindFirstChild("Head")
+                if head then CreateESP(head, true) end
+            end
+        end
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") then
+                CreateESP(obj:FindFirstChildWhichIsA("BasePart"), false)
+            end
+        end
+    end
+end
+
+TabMain:CreateToggle({
+    Name = "ESP",
+    Callback = function(state)
+        ESPEnabled = state
+        UpdateESP()
+    end
 })
+
+TabMain:CreateDropdown({
+    Name = "ESP Warna",
+    Options = { "Merah", "Hijau", "Biru" },
+    Callback = function(value)
+        ESPColor = value == "Merah" and Color3.fromRGB(255, 0, 0) or
+                   value == "Hijau" and Color3.fromRGB(0, 255, 0) or
+                   Color3.fromRGB(0, 0, 255)
+        for _, gui in ipairs(ESPObjects) do
+            if gui:FindFirstChildOfClass("TextLabel") then
+                gui:FindFirstChildOfClass("TextLabel").TextColor3 = ESPColor
+            end
+        end
+    end
+})
+
+-- Auto Refresh ESP Saat Pemain Masuk/Keluar
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(UpdateESP)
+end)
+game.Players.PlayerRemoving:Connect(UpdateESP)
+
+-- // Anti TP Kembali yang Lebih Natural
+local LastPosition = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and game.Players.LocalPlayer.Character.HumanoidRootPart.Position or Vector3.zero
+
+game:GetService("RunService").Stepped:Connect(function()
+    local HRP = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if HRP then
+        local Distance = (HRP.Position - LastPosition).Magnitude
+        if Distance > 10 then
+            HRP.Position = LastPosition:Lerp(HRP.Position, 0.3) -- Lebih smooth dan natural
+        else
+            LastPosition = HRP.Position
+        end
+    end
+end)
+
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = game.Players.LocalPlayer
+
+-- // Infinite Jump
+local InfiniteJump = false
+UserInputService.JumpRequest:Connect(function()
+    local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if InfiniteJump and Humanoid then
+        Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+TabMisc:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Callback = function(Value)
+        InfiniteJump = Value
+    end
+})
+
+-- // Fly System
+local FlyEnabled = false
+local FlySpeed = 50
+local BodyVelocity, BodyGyro
+
+local function StopFly()
+    if BodyVelocity then BodyVelocity:Destroy() BodyVelocity = nil end
+    if BodyGyro then BodyGyro:Destroy() BodyGyro = nil end
+end
+
+local function StartFly()
+    local Character = LocalPlayer.Character
+    local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+    if not FlyEnabled or not HumanoidRootPart then return end
+
+    BodyVelocity = Instance.new("BodyVelocity", HumanoidRootPart)
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+
+    BodyGyro = Instance.new("BodyGyro", HumanoidRootPart)
+    BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+    BodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+
+    RunService.Heartbeat:Connect(function()
+        if FlyEnabled and Character and HumanoidRootPart then
+            BodyVelocity.Velocity = workspace.CurrentCamera.CFrame.LookVector * FlySpeed
+            BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+        else
+            StopFly()
+        end
+    end)
+end
+
+TabMisc:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Callback = function(Value)
+        FlyEnabled = Value
+        if FlyEnabled then StartFly() else StopFly() end
+    end
+})
+
+TabMisc:CreateSlider({
+    Name = "Fly Speed",
+    Range = {0, 200},
+    Increment = 1,
+    CurrentValue = 50,
+    Callback = function(Value)
+        FlySpeed = Value
+    end
+})
+
+-- // Gravity Control
+TabMisc:CreateSlider({
+    Name = "Gravity",
+    Range = {0, 1000},
+    Increment = 10,
+    CurrentValue = workspace.Gravity,
+    Callback = function(Value)
+        workspace.Gravity = Value
+    end
+})
+
+-- // Fling System
+local FlingPower = 100000
+local FlingPart
+
+local function StopFling()
+    if FlingPart then
+        FlingPart:Destroy()
+        FlingPart = nil
+    end
+end
+
+TabMisc:CreateToggle({
+    Name = "Fling",
+    CurrentValue = false,
+    Callback = function(Value)
+        if Value then
+            local Character = LocalPlayer.Character
+            local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+            if not HumanoidRootPart then return end
+
+            FlingPart = Instance.new("BodyAngularVelocity", HumanoidRootPart)
+            FlingPart.AngularVelocity = Vector3.new(FlingPower, FlingPower, FlingPower)
+            FlingPart.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        else
+            StopFling()
+        end
+    end
+})
+
+TabMisc:CreateSlider({
+    Name = "Fling Power",
+    Range = {10000, 10000000000},
+    Increment = 10000,
+    CurrentValue = 100000,
+    Callback = function(Value)
+        FlingPower = Value
+        if FlingPart then
+            FlingPart.AngularVelocity = Vector3.new(Value, Value, Value)
+        end
+    end
+})
+
+-- // WalkSpeed Control
+local WalkSpeed = 16
+TabMisc:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 250},
+    Increment = 1,
+    CurrentValue = WalkSpeed,
+    Callback = function(Value)
+        WalkSpeed = Value
+        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if Humanoid then Humanoid.WalkSpeed = Value end
+    end
+})
+
+-- // JumpPower Control
+local JumpPower = 50
+TabMisc:CreateSlider({
+    Name = "JumpPower",
+    Range = {40, 350},
+    Increment = 1,
+    CurrentValue = JumpPower,
+    Callback = function(Value)
+        JumpPower = Value
+        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if Humanoid then Humanoid.JumpPower = Value end
+    end
+})
+
+-- // Perbaikan untuk WalkSpeed & JumpPower Setelah Respawn
+LocalPlayer.CharacterAdded:Connect(function(Character)
+    task.wait(1)
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if Humanoid then
+        Humanoid.WalkSpeed = WalkSpeed
+        Humanoid.JumpPower = JumpPower
+    end
+end)
+
+-- // Perbaikan untuk Fly dan Fling Setelah Respawn
+LocalPlayer.CharacterAdded:Connect(function()
+    StopFly()
+    StopFling()
+end)
+
+Rayfield:LoadConfiguration()
