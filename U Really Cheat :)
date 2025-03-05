@@ -9,6 +9,7 @@ local player = Players.LocalPlayer
 -- 🔑 **Key System**
 local CorrectKey = "Ramadhan2025"
 local KeyVerified = false
+local Window -- 🛠️ **Window dipindahkan ke luar function agar bisa diakses global**
 local KeyWindow
 
 -- ✅ **Membuat Window Key System**
@@ -37,7 +38,36 @@ local function verifyKey(Input)
         KeyWindow = nil  
 
         task.wait(0.5)
-        loadMainUI() -- ✅ Pasti load UI utama
+
+        -- ✅ **Buat Window utama di sini agar tab bisa terhubung**
+        Window = Rayfield:CreateWindow({
+            Name = "ZDZ Hub",
+            LoadingTitle = "Loading...",
+            LoadingSubtitle = "by Aan",
+            Theme = "Light"
+        })
+
+        -- 🔹 **Menambahkan Tab Setelah Key Benar**
+        local TabInfo = Window:CreateTab("Info", 1510045894)
+        local TabMain = Window:CreateTab("Main", 4483362458)
+        local TabMisc = Window:CreateTab("Misc", 1510045894)
+        local TabScript = Window:CreateTab("Script", 1510045894)
+
+        -- ✅ **Tab sekarang sudah ada & bisa diakses**
+        TabInfo:CreateParagraph({Title = "Welcome", Content = "ZDZ Hub is now fully loaded!"})
+        TabMain:CreateParagraph({Title = "Main Features", Content = "All main scripts will be here!"})
+
+        -- 🔄 **Auto-Reapply After Respawn**
+        player.CharacterAdded:Connect(function()
+            task.wait(2)
+            optimizeFPS()
+            bypassAntiCheat()
+        end)
+
+        -- ✅ Jalankan Sistem
+        optimizeFPS()
+        bypassAntiCheat()
+        detectKickBan()
     else
         Rayfield:Notify({Title = "❌ Incorrect Key!", Content = "Please try again!"})
     end
@@ -53,37 +83,6 @@ KeyTab:CreateInput({
         end)
     end
 })
-
--- 🚀 **Function to Load Main UI After Key Verification**
-function loadMainUI()
-    if not KeyVerified then return end
-
-    -- ✅ **Rayfield UI**
-    local Window = Rayfield:CreateWindow({
-        Name = "ZDZ Hub",
-        LoadingTitle = "Loading...",
-        LoadingSubtitle = "by Aan",
-        Theme = "Light"
-    })
-
-    -- 🔹 **Menambahkan Tab Setelah Key Benar**
-    local TabInfo = Window:CreateTab("Info", 1510045894)
-    local TabMain = Window:CreateTab("Main", 4483362458)
-    local TabMisc = Window:CreateTab("Misc", 1510045894)
-    local TabScript = Window:CreateTab("Script", 1510045894)
-
-    -- 🔄 **Auto-Reapply After Respawn**
-    player.CharacterAdded:Connect(function()
-        task.wait(2)
-        optimizeFPS()
-        bypassAntiCheat()
-    end)
-
-    -- ✅ Jalankan Sistem
-    optimizeFPS()
-    bypassAntiCheat()
-    detectKickBan()
-end
 
 -- 🚀 **FPS Booster**
 function optimizeFPS()
@@ -104,7 +103,6 @@ end
 function detectKickBan()
     StarterGui:SetCore("ResetButtonCallback", false)
 end
-
 
 -- **Theme Selector**
 local Themes = {
