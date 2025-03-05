@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local CorrectKey = "Ramadhan2025"
@@ -44,7 +45,9 @@ KeyTab:CreateInput({
     Name = "Enter Key",
     PlaceholderText = "Type your key here...",
     RemoveTextAfterFocusLost = false,
-    Callback = verifyKey
+    Callback = function(Input)
+        verifyKey(Input)
+    end
 })
 
 -- 🚀 **Function to Load Main UI After Key Verification**
@@ -166,25 +169,28 @@ function loadMainUI()
 
     -- **Teleport Toggle dengan Anti TP Kembali**
     local TeleportEnabled = false
+
     local function ToggleTeleport()
         TeleportEnabled = not TeleportEnabled
         Rayfield:Notify({
             Title = TeleportEnabled and "✅ Teleport Enabled" or "❌ Teleport Disabled",
             Content = "Click anywhere to teleport"
         })
+    end
 
-        while TeleportEnabled do
-            task.wait(0.3)
+    TabMain:CreateToggle({ Name = "Teleport", Callback = ToggleTeleport })
+
+    -- 🔥 **Teleport Sesuai Klik**
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if TeleportEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
             local mouse = player:GetMouse()
             if mouse and mouse.Target and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 local pos = mouse.Hit.p
                 player.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
             end
-            if not TeleportEnabled then break end
         end
-    end
-
-    TabMain:CreateToggle({ Name = "Teleport", Callback = ToggleTeleport })
+    end)
 end
 
 -- // ✅ ESP Lengkap dengan Auto Refresh & Event System
@@ -195,17 +201,17 @@ local ESPObjects = {}
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HRP = Character:FindFirstChild("HumanoidRootPart")
-local LastPosition = HRP and HRP.Position or Vector3.zero
+local HRP = Character:FindFirstChild("HumanoidRootPart") or Character:WaitForChild("HumanoidRootPart")
+
+local LastPosition = HRP.Position
 local TeleportThreshold = 10
 local TweenInfoSettings = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 -- ✅ **Buat ESP dengan Sistem Optimal**
 local function CreateESP(obj, isPlayer)
-    if not obj or obj:FindFirstChild("ESP") then return end
+    if not obj or not obj:IsA("BasePart") or obj:FindFirstChild("ESP") then return end
 
     local Billboard = Instance.new("BillboardGui")
     Billboard.Name = "ESP"
@@ -229,8 +235,8 @@ local function CreateESP(obj, isPlayer)
 
     -- 🔄 **Auto-Update ESP dengan Smooth**
     task.spawn(function()
-        while ESPEnabled and obj and obj.Parent and LocalPlayer and LocalPlayer.Character and HRP do
-            task.wait(0.2) -- ⏳ **Optimal update**
+        while ESPEnabled and obj and obj.Parent and HRP do
+            task.wait(0.1) -- ⏳ **Lebih optimal & cepat**
             local Distance = (obj.Position - HRP.Position).Magnitude
             Label.Text = isPlayer and obj.Parent.Name or (obj.Name .. " (" .. math.floor(Distance) .. "m)")
         end
@@ -293,27 +299,23 @@ Players.PlayerRemoving:Connect(UpdateESP)
 
 -- // 🛡️ **Anti TP Kembali dengan Smooth Tweening**
 RunService.Stepped:Connect(function()
-    local Character = LocalPlayer.Character
-    if Character then
-        local HRP = Character:FindFirstChild("HumanoidRootPart")
-        if HRP then
-            local Distance = (HRP.Position - LastPosition).Magnitude
+    if not HRP or not Character then return end
+    local Distance = (HRP.Position - LastPosition).Magnitude
 
-            -- ✅ **Deteksi teleportasi ilegal dengan cepat**
-            if Distance > TeleportThreshold then
-                local Tween = TweenService:Create(HRP, TweenInfoSettings, { Position = LastPosition })
-                Tween:Play()
-            else
-                LastPosition = HRP.Position
-            end
-        end
+    -- ✅ **Deteksi teleportasi ilegal dengan cepat**
+    if Distance > TeleportThreshold then
+        local Tween = TweenService:Create(HRP, TweenInfoSettings, { Position = LastPosition })
+        Tween:Play()
+    else
+        LastPosition = HRP.Position
     end
 end)
 
 -- 🔄 **Handle Respawn agar Tidak Bug**
 LocalPlayer.CharacterAdded:Connect(function(NewCharacter)
     task.wait(1)
-    HRP = NewCharacter:FindFirstChild("HumanoidRootPart") or NewCharacter:WaitForChild("HumanoidRootPart")
+    Character = NewCharacter
+    HRP = Character:FindFirstChild("HumanoidRootPart") or Character:WaitForChild("HumanoidRootPart")
     LastPosition = HRP.Position
 end)
 
@@ -336,9 +338,15 @@ local FlyConnection
 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = game.Players.LocalPlayer
+local LocalPlayer = game:GetService("Players").LocalPlayer
 
--- // ✅ FIX: Infinite Jump lebih stabil & langsung aktif
+-- // Pastikan TabMisc ada
+if not TabMisc then
+    warn("⚠️ TabMisc belum dibuat! Membuat TabMisc...")
+    TabMisc = Window:CreateTab("Misc")
+end
+
+-- // ✅ Infinite Jump lebih stabil
 local function EnableInfiniteJump()
     UserInputService.JumpRequest:Connect(function()
         if InfiniteJump then
@@ -366,7 +374,7 @@ LocalPlayer.CharacterAdded:Connect(function()
     EnableInfiniteJump()
 end)
 
--- // ✅ FIX: Fly lebih smooth, tidak lag, dan lebih responsif
+-- // ✅ Fly lebih smooth & responsif
 local function StopFly()
     if FlyConnection then FlyConnection:Disconnect() FlyConnection = nil end
     if BodyVelocity then BodyVelocity:Destroy() BodyVelocity = nil end
@@ -417,7 +425,7 @@ TabMisc:CreateSlider({
     end
 })
 
--- // ✅ FIX: Gravity lebih stabil & tidak membebani CPU
+-- // ✅ Gravity lebih stabil
 TabMisc:CreateSlider({
     Name = "Gravity",
     Range = {0, 1000},
@@ -429,7 +437,7 @@ TabMisc:CreateSlider({
     end
 })
 
--- // ✅ FIX: Fling lebih aman & otomatis berhenti setelah respawn
+-- // ✅ Fling lebih aman & otomatis berhenti setelah respawn
 local function StopFling()
     if FlingPart then
         FlingPart:Destroy()
@@ -472,7 +480,7 @@ LocalPlayer.CharacterAdded:Connect(function()
     StopFling()
 end)
 
--- // ✅ FIX: WalkSpeed lebih stabil & tidak reset setelah respawn
+-- // ✅ WalkSpeed lebih stabil & tidak reset
 TabMisc:CreateSlider({
     Name = "WalkSpeed",
     Range = {16, 250},
@@ -498,7 +506,7 @@ LocalPlayer.CharacterAdded:Connect(function(Character)
     end
 end)
 
--- // ✅ FIX: JumpPower lebih stabil & tidak reset setelah respawn
+-- // ✅ JumpPower lebih stabil & tidak reset
 TabMisc:CreateSlider({
     Name = "JumpPower",
     Range = {40, 350},
