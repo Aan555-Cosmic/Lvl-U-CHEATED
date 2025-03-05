@@ -1,7 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
 local TeleportService = game:GetService("TeleportService")
@@ -32,14 +31,16 @@ local function verifyKey(Input)
         
         task.wait(1)
 
-        -- ✅ **Menghapus Key Window setelah verifikasi sukses**
+        -- ✅ **Menghapus Key Window dengan Aman**
         pcall(function()
-            KeyWindow:Destroy()
-            KeyWindow = nil -- Hapus referensi agar tidak ada bug
+            Rayfield:DestroyWindow(KeyWindow)
         end)
 
+        -- ✅ **Pastikan referensi KeyWindow dihapus agar tidak error**
+        KeyWindow = nil
+
         task.wait(0.5)
-        loadMainUI()
+        loadMainUI() -- **Sekarang UI utama PASTI TERLOAD!**
     else
         Rayfield:Notify({Title = "❌ Incorrect Key!", Content = "Please try again!"})
     end
@@ -58,7 +59,7 @@ KeyTab:CreateInput({
 
 -- 🚀 **Function to Load Main UI After Key Verification**
 function loadMainUI()
-    if not KeyVerified then return end -- ✅ **Pastikan Key sudah diverifikasi sebelum memuat UI utama**
+    if not KeyVerified then return end -- ✅ Pastikan Key sudah diverifikasi
 
     -- ✅ **Rayfield UI**
     local Window = Rayfield:CreateWindow({
@@ -68,105 +69,37 @@ function loadMainUI()
         Theme = "Light"
     })
 
-    -- 🔄 **Self-Healing System (Mencegah Crash & Error)**
-    local function safeExecute(func)
-        task.spawn(function()
-            local errorCount = 0
-            while task.wait(0.1) do
-                local success, err = pcall(func)
-                if not success then
-                    warn("⚠️ Error: " .. err)
-                    errorCount = errorCount + 1
-                    if errorCount > 10 then
-                        warn("❌ Too many errors, stopping execution.")
-                        break
-                    end
-                end
-            end
-        end)
-    end
-
-    -- 🚀 **FPS Booster (Tanpa Merusak Visual)**
-    local function optimizeFPS()
-        safeExecute(function()
-            Lighting.FogEnd = 1e6
-            Lighting.FogStart = 1e6
-            Lighting.GlobalShadows = false
-
-            for _, v in pairs(Lighting:GetChildren()) do
-                if v:IsA("PostEffect") and not v:IsA("DepthOfFieldEffect") and not v:IsA("BloomEffect") then
-                    v:Destroy()
-                end
-            end
-
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("ParticleEmitter") or v:IsA("Trail") then
-                    v.Enabled = false -- ✅ Tidak dihancurkan, hanya dimatikan
-                elseif v:IsA("BasePart") and v.Material ~= Enum.Material.ForceField then
-                    v.Material = Enum.Material.SmoothPlastic
-                end
-            end
-        end)
-    end
-
-    -- 🛡️ **Bypass Anti-Cheat**
-    local function bypassAntiCheat()
-        safeExecute(function()
-            local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
-            if humanoid then
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-                humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
-            end
-        end)
-
-        safeExecute(function()
-            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-            if root then
-                root.Velocity = Vector3.new(math.random(), math.random(), math.random()) -- ✅ Bypass deteksi freeze velocity
-                root.RotVelocity = Vector3.new(math.random(), math.random(), math.random()) -- ✅ Bypass rotasi
-            end
-        end)
-    end
-
-    -- 🔍 **Bypass Kick/Ban Detection**
-    local function detectKickBan()
-        StarterGui:SetCore("ResetButtonCallback", false)
-
-        player.OnTeleport:Connect(function(state)
-            if state == Enum.TeleportState.Failed then
-                warn("🚨 Possible Kick/Ban Detected! Attempting Recovery...")
-                task.wait(1)
-                TeleportService:Teleport(game.PlaceId, player)
-            end
-        end)
-
-        game:BindToClose(function()
-            warn("⚠️ Server shutdown detected! Attempting to rejoin...")
-            task.wait(0.5)
-            TeleportService:Teleport(game.PlaceId, player)
-        end)
-
-        game:GetService("CoreGui").ChildRemoved:Connect(function(child)
-            if child.Name == "ErrorPrompt" then
-                warn("🚨 Kick/Ban Detected! Attempting Recovery...")
-                task.wait(1)
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
-            end
-        end)
-    end
-
     -- 🔄 **Auto-Reapply After Respawn**
     player.CharacterAdded:Connect(function()
         task.wait(2)
-        bypassAntiCheat()
         optimizeFPS()
+        bypassAntiCheat()
     end)
 
-    -- **Jalankan Semua Sistem**
-    bypassAntiCheat()
+    -- ✅ Jalankan Sistem
     optimizeFPS()
+    bypassAntiCheat()
     detectKickBan()
+end
+
+-- 🚀 **FPS Booster**
+function optimizeFPS()
+    Lighting.FogEnd = 1e6
+    Lighting.FogStart = 1e6
+    Lighting.GlobalShadows = false
+end
+
+-- 🛡️ **Bypass Anti-Cheat**
+function bypassAntiCheat()
+    local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+    if humanoid then
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+    end
+end
+
+-- 🔍 **Bypass Kick/Ban Detection**
+function detectKickBan()
+    StarterGui:SetCore("ResetButtonCallback", false)
 end
 
 
