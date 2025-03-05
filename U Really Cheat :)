@@ -3,6 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 -- Key System
 local Key = "Ramadhan2025"
+
 local Window = Rayfield:CreateWindow({
     Name = "Key System",
     LoadingTitle = "LoadScript...",
@@ -23,6 +24,7 @@ local KeyInput = KeyTab:CreateInput({
                 Content = "Correct Key!",
                 Duration = 3
             })
+            task.wait(1) -- Tunggu sebentar sebelum meload UI utama
             Window:DeleteTab(KeyTab)
             LoadMainUI()
         else
@@ -37,6 +39,7 @@ local KeyInput = KeyTab:CreateInput({
 
 -- Function to Load Main UI
 function LoadMainUI()
+    -- Buat ulang Window dengan nama baru setelah key diverifikasi
     local MainWindow = Rayfield:CreateWindow({
         Name = "ZDZ Hub",
         LoadingTitle = "LoadScript...",
@@ -60,7 +63,6 @@ function LoadMainUI()
         Callback = function(state)
             FlyEnabled = state
             if FlyEnabled then
-                -- Basic Fly Script
                 local Player = game.Players.LocalPlayer
                 local Character = Player.Character or Player.CharacterAdded:Wait()
                 local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
@@ -97,7 +99,7 @@ function LoadMainUI()
         end
     })
 
-    -- ESP (Masih Sederhana)
+    -- ESP (Sederhana)
     MainTab:CreateToggle({
         Name = "ESP",
         Callback = function(state)
@@ -203,5 +205,3 @@ function LoadMainUI()
         end
     })
 end
-
-Rayfield:LoadConfiguration()
