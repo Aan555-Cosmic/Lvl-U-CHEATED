@@ -1,9 +1,21 @@
 -- Load Rayfield UI Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+if not Rayfield then
+    warn("Rayfield gagal dimuat!")
+    return
+end
+
 local Window = Rayfield:CreateWindow({Name = "My Script"})
+if not Window then
+    warn("Window gagal dibuat!")
+    return
+end
 
 -- Tab Utama
 local TabMain = Window:CreateTab("Main")
+
+-- **Memuat konfigurasi UI sebelumnya**
+Rayfield:LoadConfiguration()
 
 -- ESP System
 local ESP_Toggle = false
@@ -16,7 +28,8 @@ local function ESP(player)
     Billboard.StudsOffset = Vector3.new(0, 2, 0)
     Billboard.AlwaysOnTop = true
 
-    local TextLabel = Instance.new("TextLabel", Billboard)
+    local TextLabel = Instance.new("TextLabel")
+    TextLabel.Parent = Billboard
     TextLabel.Size = UDim2.new(1, 0, 1, 0)
     TextLabel.BackgroundTransparency = 1
     TextLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
@@ -51,72 +64,74 @@ TabMain:CreateToggle({
 })
 
 -- WalkSpeed Hack
-local WalkSpeed_Toggle = false
 TabMain:CreateToggle({
     Name = "WalkSpeed (50)",
+    Flag = "WalkSpeedToggle", -- **Menyimpan status toggle**
     Callback = function(Value)
-        WalkSpeed_Toggle = Value
-        if WalkSpeed_Toggle then
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 50
-        else
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = Value and 50 or 16
         end
     end
 })
 
 -- JumpPower Hack
-local JumpPower_Toggle = false
 TabMain:CreateToggle({
     Name = "JumpPower (100)",
+    Flag = "JumpPowerToggle", -- **Menyimpan status toggle**
     Callback = function(Value)
-        JumpPower_Toggle = Value
-        if JumpPower_Toggle then
-            game.Players.LocalPlayer.Character.Humanoid.JumpPower = 100
-        else
-            game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.JumpPower = Value and 100 or 50
         end
     end
 })
 
 -- Fly System
 local Fly_Toggle = false
+local BodyVelocity
+
 local function EnableFly()
     local player = game.Players.LocalPlayer
     local char = player.Character
-    local humanoidRootPart = char:FindFirstChild("HumanoidRootPart")
+    local humanoidRootPart = char and char:FindFirstChild("HumanoidRootPart")
 
     if humanoidRootPart then
-        local BodyVelocity = Instance.new("BodyVelocity")
-        BodyVelocity.Velocity = Vector3.new(0, 50, 0)
-        BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-        BodyVelocity.Parent = humanoidRootPart
-
-        while Fly_Toggle do
-            humanoidRootPart.Velocity = humanoidRootPart.Velocity + Vector3.new(0, 1, 0)
-            task.wait()
+        if not BodyVelocity then
+            BodyVelocity = Instance.new("BodyVelocity")
+            BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+            BodyVelocity.Velocity = Vector3.new(0, 50, 0)
+            BodyVelocity.Parent = humanoidRootPart
         end
-
-        BodyVelocity:Destroy()
     end
 end
 
 TabMain:CreateToggle({
     Name = "Fly",
+    Flag = "FlyToggle", -- **Menyimpan status toggle**
     Callback = function(Value)
         Fly_Toggle = Value
         if Fly_Toggle then
             EnableFly()
+        else
+            if BodyVelocity then
+                BodyVelocity:Destroy()
+                BodyVelocity = nil
+            end
         end
     end
 })
 
 -- Anti Teleport Kembali
 local function AntiTPKembali()
-    local HumanoidRootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local player = game.Players.LocalPlayer
+    if not player.Character then return end
+
+    local HumanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
     if HumanoidRootPart then
         HumanoidRootPart:GetPropertyChangedSignal("Position"):Connect(function()
-            if Fly_Toggle == false then
-                HumanoidRootPart.Position = Vector3.new(math.random(-50, 50), HumanoidRootPart.Position.Y, math.random(-50, 50))
+            if not Fly_Toggle then
+                HumanoidRootPart.Position = HumanoidRootPart.Position + Vector3.new(math.random(-5, 5), 0, math.random(-5, 5))
             end
         end)
     end
@@ -128,6 +143,4 @@ Rayfield:Notify({
     Title = "Script Loaded",
     Content = "All Features Activated!",
     Duration = 5
-}}
-
-Rayfield:LoadConfiguration()
+})
