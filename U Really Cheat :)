@@ -3,7 +3,6 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
-local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
 
@@ -22,25 +21,23 @@ KeyWindow = Rayfield:CreateWindow({
 
 local KeyTab = KeyWindow:CreateTab("Key Verification")
 
-KeyTab:CreateParagraph({Title = "Tips", Content = "Free Key --> [Ramadhan2025]"})
+KeyTab:CreateParagraph({Title = "Tips", Content = "Free Key --> [" .. CorrectKey .. "]"})
 
 local function verifyKey(Input)
     if Input == CorrectKey then
         KeyVerified = true
         Rayfield:Notify({Title = "✅ Correct Key!", Content = "Welcome to ZDZ Hub!"})
-        
+
         task.wait(1)
 
-        -- ✅ **Menghapus Key Window dengan Aman**
+        -- ✅ **Menghapus Key Window & Tab Verifikasi**
         pcall(function()
-            Rayfield:DestroyWindow(KeyWindow)
+            KeyWindow:Destroy()
         end)
-
-        -- ✅ **Pastikan referensi KeyWindow dihapus agar tidak error**
-        KeyWindow = nil
+        KeyWindow = nil  
 
         task.wait(0.5)
-        loadMainUI() -- **Sekarang UI utama PASTI TERLOAD!**
+        loadMainUI() -- ✅ Pasti load UI utama
     else
         Rayfield:Notify({Title = "❌ Incorrect Key!", Content = "Please try again!"})
     end
@@ -51,7 +48,7 @@ KeyTab:CreateInput({
     PlaceholderText = "Type your key here...",
     RemoveTextAfterFocusLost = false,
     Callback = function(Input)
-        task.spawn(function() -- ✅ Mencegah callback error
+        task.spawn(function()
             verifyKey(Input)
         end)
     end
@@ -59,7 +56,7 @@ KeyTab:CreateInput({
 
 -- 🚀 **Function to Load Main UI After Key Verification**
 function loadMainUI()
-    if not KeyVerified then return end -- ✅ Pastikan Key sudah diverifikasi
+    if not KeyVerified then return end
 
     -- ✅ **Rayfield UI**
     local Window = Rayfield:CreateWindow({
@@ -68,6 +65,12 @@ function loadMainUI()
         LoadingSubtitle = "by Aan",
         Theme = "Light"
     })
+
+    -- 🔹 **Menambahkan Tab Setelah Key Benar**
+    local TabInfo = Window:CreateTab("Info", 1510045894)
+    local TabMain = Window:CreateTab("Main", 4483362458)
+    local TabMisc = Window:CreateTab("Misc", 1510045894)
+    local TabScript = Window:CreateTab("Script", 1510045894)
 
     -- 🔄 **Auto-Reapply After Respawn**
     player.CharacterAdded:Connect(function()
@@ -102,12 +105,6 @@ function detectKickBan()
     StarterGui:SetCore("ResetButtonCallback", false)
 end
 
-
--- **Tabs**
-local TabInfo = Window:CreateTab("Info", 1510045894)
-local TabMain = Window:CreateTab("Main", 4483362458)
-local TabMisc = Window:CreateTab("Misc", 1510045894)
-local TabScript = Window:CreateTab("Script", 1510045894)
 
 -- **Theme Selector**
 local Themes = {
