@@ -193,12 +193,4 @@ TabMain:CreateToggle({
     end
 })
 
----
-
-### **Hasil Perbaikan:**
-✔ Skrip lebih ringan dan tidak menyebabkan lag.  
-✔ Semua fitur lebih stabil dan smooth.  
-✔ Bypass Anti-Cheat diperkuat.  
-✔ FPS Booster & Optimasi untuk mencegah crash.  
-
-Coba jalankan skrip ini dan beri tahu jika ada bagian yang perlu diperbaiki lagi!
+Rayfield:LoadConfiguration()
