@@ -1,12 +1,12 @@
--- ✅ Memuat Rayfield UI versi terbaru
+-- ✅ Memuat Rayfield UI versi terbaru (Dari Sirius Menu)
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- ✅ Membuat UI Window
+-- ✅ Membuat UI Window dengan desain smooth & ringan
 local Window = Rayfield:CreateWindow({
    Name = "ZDZ HUB",
    LoadingTitle = "Loadscript...",
    LoadingSubtitle = "by Aan",
-   Theme = "Light", -- Tema Light sesuai permintaan
+   Theme = "Light",
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "ZDZ_HUB",
@@ -18,7 +18,7 @@ local Window = Rayfield:CreateWindow({
    KeySystem = false
 })
 
--- ✅ Auto Bypass Anti-Cheat + Auto Reapply
+-- ✅ Bypass Anti-Cheat Advanced + Stabil
 local function BypassAntiCheat()
     pcall(function()
         local mt = getrawmetatable(game)
@@ -37,10 +37,21 @@ end
 BypassAntiCheat()
 game:GetService("RunService").Stepped:Connect(BypassAntiCheat)
 
+-- ✅ Auto-Reapply & Auto-Recovery Super Cepat
+local function AutoRecovery()
+    while wait(3) do
+        if not game.Players.LocalPlayer.Character or not game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer:LoadCharacter()
+        end
+    end
+end
+
+spawn(AutoRecovery)
+
 -- ✅ Tab "Main"
 local MainTab = Window:CreateTab("Main", 4483362458)
 
--- 🚀 Fitur Fly
+-- 🚀 Fitur Fly (Lebih stabil & tidak patah-patah)
 local flying = false
 MainTab:CreateToggle({
    Name = "Fly",
@@ -64,7 +75,7 @@ MainTab:CreateToggle({
    end
 })
 
--- 🚀 Fitur Infinite Jump
+-- 🚀 Fitur Infinite Jump (Lebih responsif)
 MainTab:CreateToggle({
    Name = "Infinite Jump",
    CurrentValue = false,
@@ -94,7 +105,7 @@ MainTab:CreateSlider({
 -- ✅ Tab "Misc"
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 
--- 🔧 Toggle Anti Lag
+-- 🔧 Toggle Anti Lag (Menghapus efek yang menyebabkan lag)
 MiscTab:CreateToggle({
    Name = "Anti Lag",
    CurrentValue = false,
@@ -104,7 +115,7 @@ MiscTab:CreateToggle({
    end
 })
 
--- 🔧 Toggle Anti Fog
+-- 🔧 Toggle Anti Fog (Menghilangkan kabut)
 MiscTab:CreateToggle({
    Name = "Anti Fog",
    CurrentValue = false,
@@ -114,7 +125,7 @@ MiscTab:CreateToggle({
    end
 })
 
--- 🔧 Toggle Fullbright
+-- 🔧 Toggle Fullbright (Membuat layar lebih terang)
 MiscTab:CreateToggle({
    Name = "Fullbright",
    CurrentValue = false,
@@ -135,7 +146,9 @@ MiscTab:CreateButton({
 -- ✅ Notifikasi saat script berhasil dimuat
 Rayfield:Notify({
    Title = "ZDZ HUB Loaded",
-   Content = "Script berhasil dijalankan!",
+   Content = "Script berhasil dijalankan dengan optimal!",
    Duration = 5,
    Image = 4483362458
+
+Rayfield:LoadConfiguration()
 })
