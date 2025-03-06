@@ -1,7 +1,6 @@
 -- Load Rayfield UI Library dengan Perlindungan Bypass
 local success, Rayfield = pcall(function()
-    return loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
-end)
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 if not success or not Rayfield then
     warn("Gagal memuat Rayfield UI! Periksa koneksi atau coba lagi.")
