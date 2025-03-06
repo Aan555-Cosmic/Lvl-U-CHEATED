@@ -1,173 +1,181 @@
--- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Load Rayfield UI Library dengan Perlindungan Bypass
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+end)
 
--- Key System
+if not success or not Rayfield then
+    warn("Gagal memuat Rayfield UI! Periksa koneksi atau coba lagi.")
+    return
+end
+
+-- Key System Configuration
 local Key = "Ramadhan2025"
+local Verified = false
+local AutoReapply = {}
 
-local Window = Rayfield:CreateWindow({
-    Name = "Key System",
-    LoadingTitle = "LoadScript...",
-    LoadingSubtitle = "V3.0",
-    ConfigurationSaving = { Enabled = false }
-})
-
-local KeyTab = Window:CreateTab("KeySystem", "rbxassetid://7734068326")
-
-local KeyInput = KeyTab:CreateInput({
-    Name = "Enter Key",
-    PlaceholderText = "Type here...",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(value)
-        if value == Key then
-            Rayfield:Notify({
-                Title = "Key Verified",
-                Content = "Correct Key!",
-                Duration = 3
-            })
-            task.wait(1) -- Tunggu sebentar sebelum meload UI utama
-            Window:DeleteTab(KeyTab)
-            LoadMainUI()
-        else
-            Rayfield:Notify({
-                Title = "Key Incorrect",
-                Content = "Try Again!",
-                Duration = 3
-            })
+-- Auto Recovery System
+local function AutoRecovery()
+    while task.wait(5) do
+        for name, func in pairs(AutoReapply) do
+            if not func() then
+                func()
+            end
         end
     end
-})
+end
+task.spawn(AutoRecovery)
 
--- Function to Load Main UI
+-- Auto-Reapply saat respawn
+local function AutoReapplyFeatures()
+    if not game.Players.LocalPlayer.Character then return end
+    task.wait(1)
+    for _, func in pairs(AutoReapply) do
+        task.spawn(func)
+    end
+end
+game.Players.LocalPlayer.CharacterAdded:Connect(AutoReapplyFeatures)
+
+-- **Bypass Anti-Cheat (Diperbaiki)**
+local function BypassAntiCheat()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+
+    for _, v in pairs({"Humanoid", "HumanoidRootPart", "LocalScript", "ModuleScript"}) do
+        local success, err = pcall(function()
+            if character:FindFirstChild(v) then
+                character[v].Archivable = true
+            end
+        end)
+        if not success then
+            warn("Bypass gagal pada:", v, err)
+        end
+    end
+end
+task.spawn(BypassAntiCheat)
+
+-- **Function untuk Load UI utama**
 function LoadMainUI()
-    -- Buat ulang Window dengan nama baru setelah key diverifikasi
     local MainWindow = Rayfield:CreateWindow({
         Name = "ZDZ Hub",
         LoadingTitle = "LoadScript...",
         LoadingSubtitle = "V3.0",
-        ConfigurationSaving = { Enabled = false }
+        ConfigurationSaving = { Enabled = true, FolderName = "ZDZHub", FileName = "Config" }
     })
 
-    -- Tab Info
-    local InfoTab = MainWindow:CreateTab("Info", "rbxassetid://7734068326")
+    -- **Tab KeySystem**
+    local KeyTab = MainWindow:CreateTab("KeySystem")
+    local KeyInput = KeyTab:CreateInput({
+        Name = "Enter Key",
+        Callback = function(value)
+            if value == Key then
+                Verified = true
+                Rayfield:Notify({ Title = "Success", Content = "Key Verified!", Duration = 3 })
+                task.wait(1)
+                KeyTab:Destroy()
+                LoadMainUI()
+            else
+                Rayfield:Notify({ Title = "Failed", Content = "Wrong Key!", Duration = 3 })
+            end
+        end
+    })
 
-    InfoTab:CreateParagraph({Title = "ZDZ Hub", Content = "This Script Made By Aan"})
-    InfoTab:CreateParagraph({Title = "Release", Content = "This Script Has Release In March 5th and Year 2025. This Script Release in Ramadhan Event"})
+    -- **Tab Info**
+    local InfoTab = MainWindow:CreateTab("Info")
+    InfoTab:CreateParagraph({ Title = "ZDZ Hub", Content = "This Script Made By Aan" })
+    InfoTab:CreateParagraph({ Title = "Release", Content = "This Script Has Released In March 5th, 2025 (Ramadhan Event)" })
 
-    -- Tab Main
-    local MainTab = MainWindow:CreateTab("Main", "rbxassetid://7734068326")
+    -- **Tab Main**
+    local MainTab = MainWindow:CreateTab("Main")
 
-    -- Fly Feature
+    -- **Fly System (Diperbaiki)**
     local FlyEnabled = false
+    local FlySpeed = 50
+
+    local function EnableFly()
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return false end
+
+        local BodyVelocity = Instance.new("BodyVelocity", hrp)
+        BodyVelocity.Velocity = Vector3.zero
+        BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+
+        local connection
+        connection = game:GetService("RunService").RenderStepped:Connect(function()
+            if FlyEnabled then
+                local moveDirection = game.Players.LocalPlayer:GetMouse().Hit.p - hrp.Position
+                BodyVelocity.Velocity = moveDirection.unit * FlySpeed
+            else
+                BodyVelocity:Destroy()
+                connection:Disconnect()
+            end
+        end)
+
+        return true
+    end
+
     MainTab:CreateToggle({
-        Name = "Fly",
+        Name = "Fly (Bypass Anti-Cheat)",
         Callback = function(state)
             FlyEnabled = state
-            if FlyEnabled then
-                local Player = game.Players.LocalPlayer
-                local Character = Player.Character or Player.CharacterAdded:Wait()
-                local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
-                
-                if HumanoidRootPart then
-                    local BodyVelocity = Instance.new("BodyVelocity")
-                    BodyVelocity.Velocity = Vector3.new(0, 50, 0)
-                    BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                    BodyVelocity.Parent = HumanoidRootPart
-                    
-                    while FlyEnabled do
-                        task.wait()
-                        HumanoidRootPart.Velocity = Vector3.new(0, 50, 0)
-                    end
-                    BodyVelocity:Destroy()
-                end
+            if state then
+                AutoReapply["Fly"] = EnableFly
+                EnableFly()
+            else
+                AutoReapply["Fly"] = nil
             end
         end
     })
 
-    -- Infinite Jump
-    MainTab:CreateToggle({
-        Name = "Infinite Jump",
-        Callback = function(state)
-            if state then
-                game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
-                game.Players.LocalPlayer.Character.Humanoid.UseJumpPower = true
-                game:GetService("UserInputService").JumpRequest:Connect(function()
-                    game.Players.LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end)
-            else
-                game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
-            end
+    MainTab:CreateSlider({
+        Name = "Fly Speed",
+        Min = 0,
+        Max = 100,
+        Default = 50,
+        Callback = function(value)
+            FlySpeed = value
         end
     })
 
-    -- ESP (Sederhana)
-    MainTab:CreateToggle({
-        Name = "ESP",
-        Callback = function(state)
-            if state then
-                for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character then
-                        local Highlight = Instance.new("Highlight")
-                        Highlight.Adornee = player.Character
-                        Highlight.Parent = player.Character
-                    end
-                end
-            else
+    -- **ESP System (Diperbaiki)**
+    local function EnableESP(target)
+        task.spawn(function()
+            while task.wait(2) do
                 for _, player in pairs(game.Players:GetPlayers()) do
                     if player.Character then
-                        for _, v in pairs(player.Character:GetChildren()) do
-                            if v:IsA("Highlight") then
-                                v:Destroy()
+                        if not target or player.Name == target then
+                            if not player.Character:FindFirstChild("Highlight") then
+                                local Highlight = Instance.new("Highlight", player.Character)
+                                Highlight.FillColor = (player.Team ~= game.Players.LocalPlayer.Team) and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+                                Highlight.Parent = player.Character
+                            end
+                        else
+                            for _, v in pairs(player.Character:GetChildren()) do
+                                if v:IsA("Highlight") then v:Destroy() end
                             end
                         end
                     end
                 end
             end
-        end
-    })
+        end)
+    end
 
-    -- Noclip
-    local NoclipEnabled = false
     MainTab:CreateToggle({
-        Name = "Noclip",
+        Name = "ESP (Auto-Reapply)",
         Callback = function(state)
-            NoclipEnabled = state
-            while NoclipEnabled do
-                task.wait()
-                for _, part in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
+            EnableESP(state)
+            if state then
+                AutoReapply["ESP"] = function() return EnableESP() end
+            else
+                AutoReapply["ESP"] = nil
             end
         end
     })
 
-    -- WalkSpeed
-    MainTab:CreateSlider({
-        Name = "WalkSpeed",
-        Min = 16,
-        Max = 250,
-        Default = 16,
-        Callback = function(value)
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
-        end
-    })
+    -- **Tab Misc**
+    local MiscTab = MainWindow:CreateTab("Misc")
 
-    -- Gravity
-    MainTab:CreateSlider({
-        Name = "Gravity",
-        Min = 0,
-        Max = 1000,
-        Default = game.Workspace.Gravity,
-        Callback = function(value)
-            game.Workspace.Gravity = value
-        end
-    })
-
-    -- Tab Misc
-    local MiscTab = MainWindow:CreateTab("Misc", "rbxassetid://7734068326")
-
-    -- Anti Fog
     MiscTab:CreateToggle({
         Name = "Anti Fog",
         Callback = function(state)
@@ -175,33 +183,47 @@ function LoadMainUI()
         end
     })
 
-    -- Anti Lag
     MiscTab:CreateToggle({
         Name = "Anti Lag",
         Callback = function(state)
-            if state then
-                for _, v in pairs(game.Workspace:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        v.Material = Enum.Material.SmoothPlastic
-                    elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-                        v.Enabled = false
-                    end
-                end
-            end
+            game.Lighting.GlobalShadows = not state
         end
     })
 
-    -- Full Bright
     MiscTab:CreateToggle({
         Name = "FullBright",
         Callback = function(state)
-            if state then
-                game.Lighting.Brightness = 5
-                game.Lighting.GlobalShadows = false
-            else
-                game.Lighting.Brightness = 1
-                game.Lighting.GlobalShadows = true
-            end
+            game.Lighting.Brightness = state and 5 or 1
         end
     })
+
+    MiscTab:CreateToggle({
+        Name = "Toggle FPS Boost",
+        Callback = function(state)
+            setfpscap(state and 999 or 60)
+        end
+    })
+
+    -- **Select Theme**
+    local Themes = { "Default", "Ocean", "Amber Glow", "Amethyst", "Light", "Dark", "Super Dark" }
+    local SelectedTheme = "Default"
+
+    MiscTab:CreateDropdown({
+        Name = "Select Theme",
+        Options = Themes,
+        Callback = function(value)
+            SelectedTheme = value
+        end
+    })
+
+    MiscTab:CreateButton({
+        Name = "Apply Theme",
+        Callback = function()
+            Rayfield:SetTheme(SelectedTheme)
+        end
+    })
+
+    Rayfield:LoadConfiguration()
 end
+
+LoadMainUI()
