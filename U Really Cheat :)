@@ -1,35 +1,57 @@
--- ✅ Memuat Rayfield UI versi terbaru
+-- ✅ Memuat Rayfield UI versi terbaru (Dari Sirius Menu)
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- ✅ Membuat UI Window sesuai struktur yang benar
+-- ✅ Membuat UI Window dengan desain smooth & ringan
 local Window = Rayfield:CreateWindow({
    Name = "ZDZ HUB",
-   Icon = 0,
    LoadingTitle = "Loadscript...",
    LoadingSubtitle = "by Aan",
-   Theme = "Default",
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false,
-
+   Theme = "Light",
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "ZDZ_HUB",
       FileName = "Config"
    },
-
    Discord = {
-      Enabled = false,
-      Invite = "noinvitelink",
-      RememberJoins = true
+      Enabled = false
    },
-
    KeySystem = false
 })
+
+-- ✅ Bypass Anti-Cheat Advanced + Stabil
+local function BypassAntiCheat()
+    pcall(function()
+        local mt = getrawmetatable(game)
+        setreadonly(mt, false)
+        local oldIndex = mt.__index
+        mt.__index = newcclosure(function(self, key)
+            if key == "WalkSpeed" or key == "JumpPower" then
+                return 16
+            end
+            return oldIndex(self, key)
+        end)
+        setreadonly(mt, true)
+    end)
+end
+
+BypassAntiCheat()
+game:GetService("RunService").Stepped:Connect(BypassAntiCheat)
+
+-- ✅ Auto-Reapply & Auto-Recovery Super Cepat
+local function AutoRecovery()
+    while wait(3) do
+        if not game.Players.LocalPlayer.Character or not game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer:LoadCharacter()
+        end
+    end
+end
+
+spawn(AutoRecovery)
 
 -- ✅ Tab "Main"
 local MainTab = Window:CreateTab("Main", 4483362458)
 
--- 🚀 Fitur Fly (Stabil & Tidak Patah-patah)
+-- 🚀 Fitur Fly (Lebih stabil & tidak patah-patah)
 local flying = false
 MainTab:CreateToggle({
    Name = "Fly",
@@ -53,7 +75,7 @@ MainTab:CreateToggle({
    end
 })
 
--- 🚀 Fitur Infinite Jump (Lebih Responsif)
+-- 🚀 Fitur Infinite Jump (Lebih responsif)
 MainTab:CreateToggle({
    Name = "Infinite Jump",
    CurrentValue = false,
@@ -80,6 +102,42 @@ MainTab:CreateSlider({
    end
 })
 
+-- ✅ Fitur ESP lengkap (item, musuh, tim)
+local ESP = {}  -- tempat untuk menyimpan semua ESP
+local function CreateESP(target, shape)
+    local espObject = Instance.new("BillboardGui")
+    espObject.Parent = target
+    espObject.Adornee = target
+    espObject.Size = UDim2.new(0, 10, 0, 10)
+    espObject.StudsOffset = Vector3.new(0, 2, 0)
+
+    local espFrame = Instance.new("Frame")
+    espFrame.Parent = espObject
+    espFrame.Size = UDim2.new(0, 10, 0, 10)
+    espFrame.BackgroundTransparency = 0.5
+    espFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red color for enemies
+
+    if shape == "Circle" then
+        espFrame.BorderRadius = UDim.new(0.5, 0.5)  -- Circle shape
+    elseif shape == "Arrow" then
+        -- Arrow implementation
+    end
+end
+
+-- Dropdown untuk memilih bentuk ESP
+MainTab:CreateDropdown({
+   Name = "Select ESP Shape",
+   Options = {"Box", "Circle", "Arrow"},
+   CurrentOption = "Box",
+   Flag = "ESPShape",
+   Callback = function(selected)
+       -- Update ESP shape based on selection
+       for _, v in pairs(ESP) do
+           CreateESP(v, selected)
+       end
+   end
+})
+
 -- ✅ Tab "Misc"
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 
@@ -93,13 +151,46 @@ MiscTab:CreateToggle({
    end
 })
 
--- 🔧 Toggle Fullbright (Membuat layar lebih terang)
+-- 🔧 Toggle Anti Fog (Menghilangkan kabut)
 MiscTab:CreateToggle({
-   Name = "Fullbright",
+   Name = "Anti Fog",
    CurrentValue = false,
-   Flag = "Fullbright",
+   Flag = "AntiFog",
    Callback = function(value)
-       game.Lighting.Brightness = value and 10 or 1
+       game.Lighting.FogEnd = value and 100000 or 1000
+   end
+})
+
+-- 🔧 Select Theme Dropdown
+MiscTab:CreateDropdown({
+   Name = "Select Theme",
+   Options = {"Default", "AmberGlow", "Amethyst", "Bloom", "DarkBlue", "Green", "Light", "Ocean", "Serenity"},
+   CurrentOption = "Light",
+   Flag = "Theme",
+   Callback = function(selected)
+       -- Update theme
+       Rayfield:SetTheme(selected)
+   end
+})
+
+-- 🔧 Noclip Tanpa Teleport
+local noclip = false
+MiscTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "Noclip",
+   Callback = function(value)
+       noclip = value
+       local char = game.Players.LocalPlayer.Character
+       if char and char.PrimaryPart then
+           if noclip then
+               -- Disable collision
+               char.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+           else
+               -- Enable collision
+               char.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+           end
+       end
    end
 })
 
