@@ -1,168 +1,141 @@
+-- ✅ Memuat Rayfield UI versi terbaru
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Buat Window UI
+-- ✅ Membuat UI Window
 local Window = Rayfield:CreateWindow({
-    Name = "ZDZ HUB",
-    LoadingTitle = "Loadscript...",
-    LoadingSubtitle = "by Aan",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "ZDZ_HUB",
-        FileName = "Config"
-    },
-    Discord = {
-        Enabled = false,
-    },
-    KeySystem = false
+   Name = "ZDZ HUB",
+   LoadingTitle = "Loadscript...",
+   LoadingSubtitle = "by Aan",
+   Theme = "Light", -- Tema Light sesuai permintaan
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "ZDZ_HUB",
+      FileName = "Config"
+   },
+   Discord = {
+      Enabled = false
+   },
+   KeySystem = false
 })
 
--- **Bypass Anti-Cheat (Auto Apply + Auto Recovery)**
+-- ✅ Auto Bypass Anti-Cheat + Auto Reapply
 local function BypassAntiCheat()
-    local success, err = pcall(function()
+    pcall(function()
         local mt = getrawmetatable(game)
         setreadonly(mt, false)
         local oldIndex = mt.__index
         mt.__index = newcclosure(function(self, key)
             if key == "WalkSpeed" or key == "JumpPower" then
-                return 16 -- Nilai Default
+                return 16
             end
             return oldIndex(self, key)
         end)
         setreadonly(mt, true)
     end)
-    
-    if not success then
-        Rayfield:Notify({Title = "Bypass Failed", Content = err, Duration = 3})
-    end
 end
 
-BypassAntiCheat() -- Jalankan bypass saat script dimulai
+BypassAntiCheat()
+game:GetService("RunService").Stepped:Connect(BypassAntiCheat)
 
--- **Auto Reapply + Auto Recovery Bypass**
-game:GetService("RunService").Stepped:Connect(function()
-    BypassAntiCheat()
-end)
-
--- **Tab Main**
+-- ✅ Tab "Main"
 local MainTab = Window:CreateTab("Main", 4483362458)
 
--- **Fly Toggle**
+-- 🚀 Fitur Fly
 local flying = false
-local FlyToggle = MainTab:CreateToggle({
-    Name = "Fly",
-    CurrentValue = false,
-    Callback = function(value)
-        flying = value
-        if flying then
-            local player = game.Players.LocalPlayer
-            local char = player.Character
-            local humanoid = char and char:FindFirstChildWhichIsA("Humanoid")
-            if humanoid then
-                local BodyVelocity = Instance.new("BodyVelocity")
-                BodyVelocity.Velocity = Vector3.new(0, 50, 0)
-                BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                BodyVelocity.Parent = char.PrimaryPart
-            end
-        else
-            local char = game.Players.LocalPlayer.Character
-            if char and char.PrimaryPart then
-                for _, v in pairs(char.PrimaryPart:GetChildren()) do
-                    if v:IsA("BodyVelocity") then
-                        v:Destroy()
-                    end
-                end
-            end
-        end
-    end
+MainTab:CreateToggle({
+   Name = "Fly",
+   CurrentValue = false,
+   Flag = "Fly",
+   Callback = function(value)
+       flying = value
+       local char = game.Players.LocalPlayer.Character
+       if char and char.PrimaryPart then
+           if flying then
+               local BV = Instance.new("BodyVelocity")
+               BV.Velocity = Vector3.new(0, 50, 0)
+               BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+               BV.Parent = char.PrimaryPart
+           else
+               for _, v in pairs(char.PrimaryPart:GetChildren()) do
+                   if v:IsA("BodyVelocity") then v:Destroy() end
+               end
+           end
+       end
+   end
 })
 
--- **Infinite Jump Toggle**
-local InfiniteJump = false
-local InfJumpToggle = MainTab:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Callback = function(value)
-        InfiniteJump = value
-        game:GetService("UserInputService").JumpRequest:Connect(function()
-            if InfiniteJump then
-                local player = game.Players.LocalPlayer
-                local char = player.Character
-                if char then
-                    local humanoid = char:FindFirstChildWhichIsA("Humanoid")
-                    if humanoid then
-                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                    end
-                end
-            end
-        end)
-    end
+-- 🚀 Fitur Infinite Jump
+MainTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Flag = "InfJump",
+   Callback = function(value)
+       game:GetService("UserInputService").JumpRequest:Connect(function()
+           if value then
+               game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+           end
+       end)
+   end
 })
 
--- **Speed Toggle (Anti TP Back)**
-local SpeedToggle = MainTab:CreateToggle({
-    Name = "Speed",
-    CurrentValue = false,
-    Callback = function(value)
-        local player = game.Players.LocalPlayer
-        local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = value and 50 or 16
-        end
-    end
+-- 🚀 Fitur Speed (Anti TP Back)
+MainTab:CreateSlider({
+   Name = "Speed",
+   Range = {16, 100},
+   Increment = 2,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "Speed",
+   Callback = function(value)
+       game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = value
+   end
 })
 
--- **Tab Misc**
+-- ✅ Tab "Misc"
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 
--- **Anti-Lag Toggle**
-local AntiLag = false
-local AntiLagToggle = MiscTab:CreateToggle({
-    Name = "Anti Lag",
-    CurrentValue = false,
-    Callback = function(value)
-        AntiLag = value
-        if AntiLag then
-            for _, v in pairs(game.Workspace:GetDescendants()) do
-                if v:IsA("BasePart") and not v.Anchored then
-                    v.CanCollide = false
-                end
-            end
-        end
-    end
+-- 🔧 Toggle Anti Lag
+MiscTab:CreateToggle({
+   Name = "Anti Lag",
+   CurrentValue = false,
+   Flag = "AntiLag",
+   Callback = function(value)
+       setfpscap(value and 240 or 60)
+   end
 })
 
--- **Anti-Fog Toggle**
-local AntiFog = false
-local AntiFogToggle = MiscTab:CreateToggle({
-    Name = "Anti Fog",
-    CurrentValue = false,
-    Callback = function(value)
-        AntiFog = value
-        local Lighting = game:GetService("Lighting")
-        if AntiFog then
-            Lighting.FogEnd = 100000
-        else
-            Lighting.FogEnd = 1000
-        end
-    end
+-- 🔧 Toggle Anti Fog
+MiscTab:CreateToggle({
+   Name = "Anti Fog",
+   CurrentValue = false,
+   Flag = "AntiFog",
+   Callback = function(value)
+       game.Lighting.FogEnd = value and 100000 or 1000
+   end
 })
 
--- **Full Bright Toggle**
-local FullBright = false
-local FullBrightToggle = MiscTab:CreateToggle({
-    Name = "Full Bright",
-    CurrentValue = false,
-    Callback = function(value)
-        FullBright = value
-        local Lighting = game:GetService("Lighting")
-        if FullBright then
-            Lighting.Ambient = Color3.new(1, 1, 1)
-            Lighting.Brightness = 2
-        else
-            Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
-            Lighting.Brightness = 1
-        end
-    end
+-- 🔧 Toggle Fullbright
+MiscTab:CreateToggle({
+   Name = "Fullbright",
+   CurrentValue = false,
+   Flag = "Fullbright",
+   Callback = function(value)
+       game.Lighting.Brightness = value and 10 or 1
+   end
 })
 
-Rayfield:LoadConfiguration()
+-- ✅ Tombol Tutup UI
+MiscTab:CreateButton({
+   Name = "Close UI",
+   Callback = function()
+       Rayfield:Destroy()
+   end
+})
+
+-- ✅ Notifikasi saat script berhasil dimuat
+Rayfield:Notify({
+   Title = "ZDZ HUB Loaded",
+   Content = "Script berhasil dijalankan!",
+   Duration = 5,
+   Image = 4483362458
+})
