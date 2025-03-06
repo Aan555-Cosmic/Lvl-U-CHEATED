@@ -1,228 +1,168 @@
--- Load Rayfield UI Library dengan Perlindungan Bypass
-local success, Rayfield = pcall(function()
-    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-if not success or not Rayfield then
-    warn("Gagal memuat Rayfield UI! Periksa koneksi atau coba lagi.")
-    return
-end
+-- Buat Window UI
+local Window = Rayfield:CreateWindow({
+    Name = "ZDZ HUB",
+    LoadingTitle = "Loadscript...",
+    LoadingSubtitle = "by Aan",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "ZDZ_HUB",
+        FileName = "Config"
+    },
+    Discord = {
+        Enabled = false,
+    },
+    KeySystem = false
+})
 
--- Key System Configuration
-local Key = "Ramadhan2025"
-local Verified = false
-local AutoReapply = {}
-
--- Auto Recovery System
-local function AutoRecovery()
-    while task.wait(5) do
-        for name, func in pairs(AutoReapply) do
-            if not func() then
-                func()
-            end
-        end
-    end
-end
-task.spawn(AutoRecovery)
-
--- Auto-Reapply saat respawn
-local function AutoReapplyFeatures()
-    if not game.Players.LocalPlayer.Character then return end
-    task.wait(1)
-    for _, func in pairs(AutoReapply) do
-        task.spawn(func)
-    end
-end
-game.Players.LocalPlayer.CharacterAdded:Connect(AutoReapplyFeatures)
-
--- **Bypass Anti-Cheat (Diperbaiki)**
+-- **Bypass Anti-Cheat (Auto Apply + Auto Recovery)**
 local function BypassAntiCheat()
-    local character = game.Players.LocalPlayer.Character
-    if not character then return end
-
-    for _, v in pairs({"Humanoid", "HumanoidRootPart", "LocalScript", "ModuleScript"}) do
-        local success, err = pcall(function()
-            if character:FindFirstChild(v) then
-                character[v].Archivable = true
+    local success, err = pcall(function()
+        local mt = getrawmetatable(game)
+        setreadonly(mt, false)
+        local oldIndex = mt.__index
+        mt.__index = newcclosure(function(self, key)
+            if key == "WalkSpeed" or key == "JumpPower" then
+                return 16 -- Nilai Default
             end
+            return oldIndex(self, key)
         end)
-        if not success then
-            warn("Bypass gagal pada:", v, err)
-        end
+        setreadonly(mt, true)
+    end)
+    
+    if not success then
+        Rayfield:Notify({Title = "Bypass Failed", Content = err, Duration = 3})
     end
 end
-task.spawn(BypassAntiCheat)
 
--- **Function untuk Load UI utama**
-function LoadMainUI()
-    local MainWindow = Rayfield:CreateWindow({
-        Name = "ZDZ Hub",
-        LoadingTitle = "LoadScript...",
-        LoadingSubtitle = "V3.0",
-        ConfigurationSaving = { Enabled = true, FolderName = "ZDZHub", FileName = "Config" }
-    })
+BypassAntiCheat() -- Jalankan bypass saat script dimulai
 
-    -- **Tab KeySystem**
-    local KeyTab = MainWindow:CreateTab("KeySystem")
-    local KeyInput = KeyTab:CreateInput({
-        Name = "Enter Key",
-        Callback = function(value)
-            if value == Key then
-                Verified = true
-                Rayfield:Notify({ Title = "Success", Content = "Key Verified!", Duration = 3 })
-                task.wait(1)
-                KeyTab:Destroy()
-                LoadMainUI()
-            else
-                Rayfield:Notify({ Title = "Failed", Content = "Wrong Key!", Duration = 3 })
+-- **Auto Reapply + Auto Recovery Bypass**
+game:GetService("RunService").Stepped:Connect(function()
+    BypassAntiCheat()
+end)
+
+-- **Tab Main**
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+-- **Fly Toggle**
+local flying = false
+local FlyToggle = MainTab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Callback = function(value)
+        flying = value
+        if flying then
+            local player = game.Players.LocalPlayer
+            local char = player.Character
+            local humanoid = char and char:FindFirstChildWhichIsA("Humanoid")
+            if humanoid then
+                local BodyVelocity = Instance.new("BodyVelocity")
+                BodyVelocity.Velocity = Vector3.new(0, 50, 0)
+                BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                BodyVelocity.Parent = char.PrimaryPart
+            end
+        else
+            local char = game.Players.LocalPlayer.Character
+            if char and char.PrimaryPart then
+                for _, v in pairs(char.PrimaryPart:GetChildren()) do
+                    if v:IsA("BodyVelocity") then
+                        v:Destroy()
+                    end
+                end
             end
         end
-    })
-
-    -- **Tab Info**
-    local InfoTab = MainWindow:CreateTab("Info")
-    InfoTab:CreateParagraph({ Title = "ZDZ Hub", Content = "This Script Made By Aan" })
-    InfoTab:CreateParagraph({ Title = "Release", Content = "This Script Has Released In March 5th, 2025 (Ramadhan Event)" })
-
-    -- **Tab Main**
-    local MainTab = MainWindow:CreateTab("Main")
-
-    -- **Fly System (Diperbaiki)**
-    local FlyEnabled = false
-    local FlySpeed = 50
-
-    local function EnableFly()
-        local plr = game.Players.LocalPlayer
-        local char = plr.Character or plr.CharacterAdded:Wait()
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return false end
-
-        local BodyVelocity = Instance.new("BodyVelocity", hrp)
-        BodyVelocity.Velocity = Vector3.zero
-        BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-
-        local connection
-        connection = game:GetService("RunService").RenderStepped:Connect(function()
-            if FlyEnabled then
-                local moveDirection = game.Players.LocalPlayer:GetMouse().Hit.p - hrp.Position
-                BodyVelocity.Velocity = moveDirection.unit * FlySpeed
-            else
-                BodyVelocity:Destroy()
-                connection:Disconnect()
-            end
-        end)
-
-        return true
     end
+})
 
-    MainTab:CreateToggle({
-        Name = "Fly (Bypass Anti-Cheat)",
-        Callback = function(state)
-            FlyEnabled = state
-            if state then
-                AutoReapply["Fly"] = EnableFly
-                EnableFly()
-            else
-                AutoReapply["Fly"] = nil
-            end
-        end
-    })
-
-    MainTab:CreateSlider({
-        Name = "Fly Speed",
-        Min = 0,
-        Max = 100,
-        Default = 50,
-        Callback = function(value)
-            FlySpeed = value
-        end
-    })
-
-    -- **ESP System (Diperbaiki)**
-    local function EnableESP(target)
-        task.spawn(function()
-            while task.wait(2) do
-                for _, player in pairs(game.Players:GetPlayers()) do
-                    if player.Character then
-                        if not target or player.Name == target then
-                            if not player.Character:FindFirstChild("Highlight") then
-                                local Highlight = Instance.new("Highlight", player.Character)
-                                Highlight.FillColor = (player.Team ~= game.Players.LocalPlayer.Team) and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
-                                Highlight.Parent = player.Character
-                            end
-                        else
-                            for _, v in pairs(player.Character:GetChildren()) do
-                                if v:IsA("Highlight") then v:Destroy() end
-                            end
-                        end
+-- **Infinite Jump Toggle**
+local InfiniteJump = false
+local InfJumpToggle = MainTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Callback = function(value)
+        InfiniteJump = value
+        game:GetService("UserInputService").JumpRequest:Connect(function()
+            if InfiniteJump then
+                local player = game.Players.LocalPlayer
+                local char = player.Character
+                if char then
+                    local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
                     end
                 end
             end
         end)
     end
+})
 
-    MainTab:CreateToggle({
-        Name = "ESP (Auto-Reapply)",
-        Callback = function(state)
-            EnableESP(state)
-            if state then
-                AutoReapply["ESP"] = function() return EnableESP() end
-            else
-                AutoReapply["ESP"] = nil
+-- **Speed Toggle (Anti TP Back)**
+local SpeedToggle = MainTab:CreateToggle({
+    Name = "Speed",
+    CurrentValue = false,
+    Callback = function(value)
+        local player = game.Players.LocalPlayer
+        local humanoid = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = value and 50 or 16
+        end
+    end
+})
+
+-- **Tab Misc**
+local MiscTab = Window:CreateTab("Misc", 4483362458)
+
+-- **Anti-Lag Toggle**
+local AntiLag = false
+local AntiLagToggle = MiscTab:CreateToggle({
+    Name = "Anti Lag",
+    CurrentValue = false,
+    Callback = function(value)
+        AntiLag = value
+        if AntiLag then
+            for _, v in pairs(game.Workspace:GetDescendants()) do
+                if v:IsA("BasePart") and not v.Anchored then
+                    v.CanCollide = false
+                end
             end
         end
-    })
+    end
+})
 
-    -- **Tab Misc**
-    local MiscTab = MainWindow:CreateTab("Misc")
-
-    MiscTab:CreateToggle({
-        Name = "Anti Fog",
-        Callback = function(state)
-            game.Lighting.FogEnd = state and 100000 or 1000
+-- **Anti-Fog Toggle**
+local AntiFog = false
+local AntiFogToggle = MiscTab:CreateToggle({
+    Name = "Anti Fog",
+    CurrentValue = false,
+    Callback = function(value)
+        AntiFog = value
+        local Lighting = game:GetService("Lighting")
+        if AntiFog then
+            Lighting.FogEnd = 100000
+        else
+            Lighting.FogEnd = 1000
         end
-    })
+    end
+})
 
-    MiscTab:CreateToggle({
-        Name = "Anti Lag",
-        Callback = function(state)
-            game.Lighting.GlobalShadows = not state
+-- **Full Bright Toggle**
+local FullBright = false
+local FullBrightToggle = MiscTab:CreateToggle({
+    Name = "Full Bright",
+    CurrentValue = false,
+    Callback = function(value)
+        FullBright = value
+        local Lighting = game:GetService("Lighting")
+        if FullBright then
+            Lighting.Ambient = Color3.new(1, 1, 1)
+            Lighting.Brightness = 2
+        else
+            Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
+            Lighting.Brightness = 1
         end
-    })
+    end
+})
 
-    MiscTab:CreateToggle({
-        Name = "FullBright",
-        Callback = function(state)
-            game.Lighting.Brightness = state and 5 or 1
-        end
-    })
-
-    MiscTab:CreateToggle({
-        Name = "Toggle FPS Boost",
-        Callback = function(state)
-            setfpscap(state and 999 or 60)
-        end
-    })
-
-    -- **Select Theme**
-    local Themes = { "Default", "Ocean", "Amber Glow", "Amethyst", "Light", "Dark", "Super Dark" }
-    local SelectedTheme = "Default"
-
-    MiscTab:CreateDropdown({
-        Name = "Select Theme",
-        Options = Themes,
-        Callback = function(value)
-            SelectedTheme = value
-        end
-    })
-
-    MiscTab:CreateButton({
-        Name = "Apply Theme",
-        Callback = function()
-            Rayfield:SetTheme(SelectedTheme)
-        end
-    })
-
-    Rayfield:LoadConfiguration()
-end
-
-LoadMainUI()
+Rayfield:LoadConfiguration()
