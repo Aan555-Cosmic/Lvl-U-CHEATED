@@ -15,6 +15,7 @@ local Window = Rayfield:CreateWindow({
 
 -- [TAB MAIN]
 local TabMain = Window:CreateTab("Main", 4483362458)
+local Misc = Window:CreateTab("Misc", 4483362458)
 
 -- FLY SETTINGS
 local FlyEnabled = false
@@ -54,8 +55,6 @@ TabMain:CreateSlider({
    end
 })
 
--- [TAB MISC]
-local Misc = Window:CreateTab("Misc", 4483362458)
 
 Misc:CreateToggle({
    Name = "Enable Anti-Lag",
