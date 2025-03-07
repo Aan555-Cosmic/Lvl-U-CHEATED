@@ -1,213 +1,107 @@
--- ✅ Memuat Rayfield UI versi terbaru (Dari Sirius Menu)
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- ✅ Membuat UI Window dengan desain smooth & ringan
+-- [WINDOW UTAMA]
 local Window = Rayfield:CreateWindow({
-   Name = "ZDZ HUB",
-   LoadingTitle = "Loadscript...",
-   LoadingSubtitle = "by Aan",
-   Theme = "Light",
+   Name = "ZDZ HUB - Max Version",
+   LoadingTitle = "ZDZ HUB Loading...",
+   LoadingSubtitle = "Optimized and Bug-Free",
+   Theme = "Default",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "ZDZ_HUB",
-      FileName = "Config"
-   },
-   Discord = {
-      Enabled = false
-   },
-   KeySystem = false
+      FolderName = nil,
+      FileName = "ZDZHubConfig"
+   }
 })
 
--- ✅ Bypass Anti-Cheat Advanced + Stabil
-local function BypassAntiCheat()
-    pcall(function()
-        local mt = getrawmetatable(game)
-        setreadonly(mt, false)
-        local oldIndex = mt.__index
-        mt.__index = newcclosure(function(self, key)
-            if key == "WalkSpeed" or key == "JumpPower" then
-                return 16
-            end
-            return oldIndex(self, key)
-        end)
-        setreadonly(mt, true)
-    end)
+-- [TAB MAIN]
+local TabMain = Window:CreateTab("Main", 4483362458)
+
+-- FLY SETTINGS
+local FlyEnabled = false
+local FlySpeed = 50
+local FlyPart = nil
+
+local function EnableFly()
+   if FlyEnabled then
+      FlyPart = Instance.new("BodyVelocity")
+      FlyPart.Velocity = Vector3.new(0, FlySpeed, 0)
+      FlyPart.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+      FlyPart.Parent = game.Players.LocalPlayer.Character.HumanoidRootPart
+   else
+      if FlyPart then FlyPart:Destroy() FlyPart = nil end
+   end
 end
 
-BypassAntiCheat()
-game:GetService("RunService").Stepped:Connect(BypassAntiCheat)
-
--- ✅ Auto-Reapply & Auto-Recovery Super Cepat
-local function AutoRecovery()
-    while wait(3) do
-        if not game.Players.LocalPlayer.Character or not game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
-            game.Players.LocalPlayer:LoadCharacter()
-        end
-    end
-end
-
-spawn(AutoRecovery)
-
--- ✅ Tab "Main"
-local MainTab = Window:CreateTab("Main", 4483362458)
-
--- 🚀 Fitur Fly (Lebih stabil & tidak patah-patah)
-local flying = false
-MainTab:CreateToggle({
-   Name = "Fly",
-   CurrentValue = false,
+TabMain:CreateToggle({
+   Name = "Enable Fly",
    Flag = "Fly",
-   Callback = function(value)
-       flying = value
-       local char = game.Players.LocalPlayer.Character
-       if char and char.PrimaryPart then
-           if flying then
-               local BV = Instance.new("BodyVelocity")
-               BV.Velocity = Vector3.new(0, 50, 0)
-               BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-               BV.Parent = char.PrimaryPart
-           else
-               for _, v in pairs(char.PrimaryPart:GetChildren()) do
-                   if v:IsA("BodyVelocity") then v:Destroy() end
-               end
-           end
-       end
+   Callback = function(Value)
+      FlyEnabled = Value
+      EnableFly()
    end
 })
 
--- 🚀 Fitur Infinite Jump (Lebih responsif)
-MainTab:CreateToggle({
-   Name = "Infinite Jump",
-   CurrentValue = false,
-   Flag = "InfJump",
-   Callback = function(value)
-       game:GetService("UserInputService").JumpRequest:Connect(function()
-           if value then
-               game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
-           end
-       end)
+TabMain:CreateSlider({
+   Name = "Fly Speed",
+   Min = 0,
+   Max = 250,
+   Flag = "FlySpeed",
+   Callback = function(Value)
+      FlySpeed = Value
+      if FlyEnabled and FlyPart then
+         FlyPart.Velocity = Vector3.new(0, FlySpeed, 0)
+      end
    end
 })
 
--- 🚀 Fitur Speed (Anti TP Back)
-MainTab:CreateSlider({
-   Name = "Speed",
-   Range = {16, 100},
-   Increment = 2,
-   Suffix = "Speed",
-   CurrentValue = 16,
-   Flag = "Speed",
-   Callback = function(value)
-       game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = value
-   end
-})
+-- [TAB MISC]
+local Misc = Window:CreateTab("Misc", 4483362458)
 
--- ✅ Fitur ESP lengkap (item, musuh, tim)
-local ESP = {}  -- tempat untuk menyimpan semua ESP
-local function CreateESP(target, shape)
-    local espObject = Instance.new("BillboardGui")
-    espObject.Parent = target
-    espObject.Adornee = target
-    espObject.Size = UDim2.new(0, 10, 0, 10)
-    espObject.StudsOffset = Vector3.new(0, 2, 0)
-
-    local espFrame = Instance.new("Frame")
-    espFrame.Parent = espObject
-    espFrame.Size = UDim2.new(0, 10, 0, 10)
-    espFrame.BackgroundTransparency = 0.5
-    espFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red color for enemies
-
-    if shape == "Circle" then
-        espFrame.BorderRadius = UDim.new(0.5, 0.5)  -- Circle shape
-    elseif shape == "Arrow" then
-        -- Arrow implementation
-    end
-end
-
--- Dropdown untuk memilih bentuk ESP
-MainTab:CreateDropdown({
-   Name = "Select ESP Shape",
-   Options = {"Box", "Circle", "Arrow"},
-   CurrentOption = "Box",
-   Flag = "ESPShape",
-   Callback = function(selected)
-       -- Update ESP shape based on selection
-       for _, v in pairs(ESP) do
-           CreateESP(v, selected)
-       end
-   end
-})
-
--- ✅ Tab "Misc"
-local MiscTab = Window:CreateTab("Misc", 4483362458)
-
--- 🔧 Toggle Anti Lag (Menghapus efek yang menyebabkan lag)
-MiscTab:CreateToggle({
-   Name = "Anti Lag",
-   CurrentValue = false,
+Misc:CreateToggle({
+   Name = "Enable Anti-Lag",
    Flag = "AntiLag",
-   Callback = function(value)
-       setfpscap(value and 240 or 60)
+   Callback = function(Value)
+      game:GetService("NetworkClient"):SetOutgoingKBPSLimit(Value and 9e9 or 10000)
    end
 })
 
--- 🔧 Toggle Anti Fog (Menghilangkan kabut)
-MiscTab:CreateToggle({
-   Name = "Anti Fog",
-   CurrentValue = false,
-   Flag = "AntiFog",
-   Callback = function(value)
-       game.Lighting.FogEnd = value and 100000 or 1000
+Misc:CreateToggle({
+   Name = "No Fog",
+   Flag = "NoFog",
+   Callback = function(Value)
+      game.Lighting.FogEnd = Value and 100000 or 1000
    end
 })
 
--- 🔧 Select Theme Dropdown
-MiscTab:CreateDropdown({
-   Name = "Select Theme",
-   Options = {"Default", "AmberGlow", "Amethyst", "Bloom", "DarkBlue", "Green", "Light", "Ocean", "Serenity"},
-   CurrentOption = "Light",
-   Flag = "Theme",
-   Callback = function(selected)
-       -- Update theme
-       Rayfield:SetTheme(selected)
+Misc:CreateToggle({
+   Name = "Fullbright",
+   Flag = "Fullbright",
+   Callback = function(Value)
+      game.Lighting.Brightness = Value and 2 or 1
    end
 })
 
--- 🔧 Noclip Tanpa Teleport
-local noclip = false
-MiscTab:CreateToggle({
-   Name = "Noclip",
-   CurrentValue = false,
-   Flag = "Noclip",
-   Callback = function(value)
-       noclip = value
-       local char = game.Players.LocalPlayer.Character
-       if char and char.PrimaryPart then
-           if noclip then
-               -- Disable collision
-               char.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-           else
-               -- Enable collision
-               char.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-           end
-       end
-   end
-})
+-- [BYPASS ANTI-CHEAT]
+local function AntiCheatBypass()
+   local player = game:GetService("Players").LocalPlayer
+   local character = player.Character or player.CharacterAdded:Wait()
 
--- ✅ Tombol Tutup UI
-MiscTab:CreateButton({
-   Name = "Close UI",
-   Callback = function()
-       Rayfield:Destroy()
+   for _, v in pairs(character:GetDescendants()) do
+      if v:IsA("BasePart") then
+         v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+      end
    end
-})
+end
+AntiCheatBypass()
 
--- ✅ Notifikasi saat script berhasil dimuat
-Rayfield:Notify({
-   Title = "ZDZ HUB Loaded",
-   Content = "Script berhasil dijalankan dengan optimal!",
-   Duration = 5,
-   Image = 4483362458
-})
+-- [AUTO-RECOVERY MAKSIMAL]
+local function AutoFix()
+   while wait(5) do
+      if not game:IsLoaded() then
+         game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+      end
+   end
+end
+spawn(AutoFix)
 
 Rayfield:LoadConfiguration()
